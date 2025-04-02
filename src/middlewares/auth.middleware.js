@@ -1,28 +1,29 @@
 import jwt from "jsonwebtoken";
 import Session from "../database/models/session.model.js";
-import { JWT_SECRET } from "../config.js";
 
 export const authMiddleware = async (req, res, next) => {
   try {
     const { auth_token } = req.cookies;
 
     if (!auth_token) {
+      console.log("No hay token de acceso en la cookie");
       return res.status(401).send({
         status: "FAILED",
         data: { error: [{ message: "Por favor, vuelve a iniciar sesion." }] },
       });
     }
 
-    const sessionFound = await Session.findOne({ access_token: auth_token });
+    const sessionFound = await Session.findOne({ auth_token: auth_token });
 
     if (!sessionFound) {
+      console.log("No hay una sesion activa para este token de acceso");
       return res.status(401).send({
         status: "FAILED",
         data: { error: [{ message: "Por favor, vuelve a iniciar sesion" }] },
       });
     }
 
-    jwt.verify(auth_token, JWT_SECRET, (error, authData) => {
+    jwt.verify(auth_token, process.env.JWT_SECRET, (error, authData) => {
       if (error) {
         return res.status(401).send({
           status: "FAILED",

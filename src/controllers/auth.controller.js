@@ -49,7 +49,7 @@ class AuthController {
             {
               message:
                 error?.message ||
-                "An error occurred while processing your request. Please try again later.",
+                "Ocurrio un error al procesar su solicitud. Por favor intente de nuevo mas tarde.",
             },
           ],
         },
@@ -62,7 +62,7 @@ class AuthController {
       const { email, password } = req.body;
       const response = await AuthService.signIn(email, password);
 
-      res.cookie("authToken", response.data, {
+      res.cookie("auth_token", response.data, {
         httpOnly: true,
         secure: true,
         sameSite: "none",
@@ -84,7 +84,96 @@ class AuthController {
             {
               message:
                 error?.message ||
-                "An error occurred while processing your request. Please try again later.",
+                "Ocurrio un error al procesar su solicitud. Por favor intente de nuevo mas tarde.",
+            },
+          ],
+        },
+      });
+    }
+  }
+
+  async forgotPassword(req, res) {
+    try {
+      const { email } = req.body;
+      const response = await AuthService.forgotPassword(email);
+
+      res.status(200).send({
+        status: "OK",
+        data: {
+          message: response.message,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(error?.status || 500).send({
+        status: "FAILED",
+        data: {
+          error: [
+            {
+              message:
+                error?.message ||
+                "Ocurrio un error al procesar su solicitud. Por favor intente de nuevo mas tarde.",
+            },
+          ],
+        },
+      });
+    }
+  }
+
+  async resetPassword(req, res) {
+    try {
+      const { email, otp, newPassword, confirmPassword } = req.body;
+      const response = await AuthService.resetPassword(
+        email,
+        otp,
+        newPassword,
+        confirmPassword
+      );
+
+      res.status(200).send({
+        status: "OK",
+        data: {
+          message: response.message,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(error?.status || 500).send({
+        status: "FAILED",
+        data: {
+          error: [
+            {
+              message:
+                error?.message ||
+                "Ocurrio un error al procesar su solicitud. Por favor intente de nuevo mas tarde.",
+            },
+          ],
+        },
+      });
+    }
+  }
+
+  async authStatus(req, res) {
+    try {
+      const response = await AuthService.authStatus(req.authData.id);
+
+      res.status(200).send({
+        status: "OK",
+        data: {
+          message: response.message,
+          data: response.data,
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(error?.status || 500).send({
+        status: "FAILED",
+        data: {
+          error: [
+            {
+              message:
+                error?.message ||
+                "Ocurrio un error al procesar su solicitud. Por favor intente de nuevo mas tarde.",
             },
           ],
         },
@@ -119,7 +208,7 @@ class AuthController {
             {
               message:
                 error?.message ||
-                "An error occurred while processing your request. Please try again later.",
+                "Ocurrio un error al procesar su solicitud. Por favor intente de nuevo mas tarde.",
             },
           ],
         },

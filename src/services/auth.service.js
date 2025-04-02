@@ -14,11 +14,18 @@ class AuthService {
       const userFound = await User.findOne({ email });
 
       if (userFound) {
-        throw new Error("La direccion de correo proporcionada ya esta en uso");
+        throw {
+          status: 409,
+          userErrorMessage:
+            "La direccion de correo proporcionada ya esta en uso",
+        };
       }
 
       if (userData.password !== userData.confirmPassword) {
-        throw new Error("Las contraseñas no coinciden");
+        throw {
+          status: 401,
+          userErrorMessage: "Las contraseñas no coinciden",
+        };
       }
 
       const passwordHash = await bcrypt.hash(password, 10);
@@ -49,7 +56,9 @@ class AuthService {
       };
     } catch (error) {
       console.log(error);
-      throw new Error("Ocurrio un error al registrar el usuario");
+      throw {
+        message: error.userErrorMessage,
+      };
     }
   }
 
@@ -60,21 +69,21 @@ class AuthService {
       if (!userFound) {
         throw {
           status: 404,
-          message: "Usuario no encontrado",
+          userErrorMessage: "Usuario no encontrado",
         };
       }
 
       if (userFound.verifyOtp !== otp) {
         throw {
           status: 401,
-          message: "El OTP proporcionado no es correcto",
+          userErrorMessage: "El OTP proporcionado no es correcto",
         };
       }
 
       if (Date.now() > userFound.verifyOtpExpireAt) {
         throw {
           status: 401,
-          message: "El OTP ha expirado",
+          userErrorMessage: "El OTP ha expirado",
         };
       }
 
@@ -89,7 +98,9 @@ class AuthService {
 
       return { message: "Cuenta verificada exitosamente" };
     } catch (error) {
-      throw new Error(error);
+      throw {
+        message: error.userErrorMessage,
+      };
     }
   }
 
@@ -100,14 +111,14 @@ class AuthService {
       if (!userFound) {
         throw {
           status: 404,
-          message: "No hay ningun usuario registrado con este correo",
+          userErrorMessage: "No hay ningun usuario registrado con este correo",
         };
       }
 
       if (!userFound.isAccountVerified) {
         throw {
           status: 401,
-          message: "La cuenta no ha sido verificada",
+          userErrorMessage: "La cuenta no ha sido verificada",
         };
       }
 
@@ -116,7 +127,7 @@ class AuthService {
       if (!isMarched) {
         throw {
           status: 401,
-          message: "La contraseña es incorrecta",
+          userErrorMessage: "La contraseña es incorrecta",
         };
       }
 
@@ -141,41 +152,120 @@ class AuthService {
       };
     } catch (error) {
       console.log(error);
-      throw { message: error.message };
+      throw { message: error.userErrorMessage };
     }
   }
 
-  async forgotPaaword(email) {
+  async forgotPassword(email) {
     try {
       const userFound = await User.findOne({ email });
 
       if (!userFound) {
         throw {
           status: 500,
-          message: "Error al intentar restablecer la contrasena",
+          userErrorMessage: "Verifique la direccion de correo proporcionada",
         };
       }
+
+      const otp = Math.floor(100000 + Math.random() * 900000);
+      const expireAt = Date.now() + 15 * 60 * 1000;
+
+      await User.findOneAndUpdate(
+        { email },
+        {
+          resetOtp: otp,
+          resetOtpExpireAt: expireAt,
+        }
+      );
+
+      const context = {
+        domain: process.env.CLIENT_URL,
+        otp: otp,
+      };
+      sendEmail(
+        email,
+        "Recupera tu contraseña",
+        "forgotPasswordTemplate",
+        context
+      );
+
+      return {
+        message: `Correo de recuperacion enviado exitosamente a ${email}`,
+      };
     } catch (error) {
       throw {
-        message: error.message,
+        message: error.userErrorMessage,
       };
     }
   }
 
-  async resetPassword(data) {
+  async resetPassword(email, otp, newPassword, confirmPassword) {
     try {
+      const userFound = await User.findOne({ email });
+
+      if (!userFound) {
+        throw {
+          status: 404,
+          userErrorMessage: "Usuario no encontrado",
+        };
+      }
+
+      if (newPassword !== confirmPassword) {
+        throw {
+          status: 401,
+          userErrorMessage: "Las contraseñas no coinciden",
+        };
+      }
+
+      if (userFound.resetOtp !== otp) {
+        throw {
+          status: 401,
+          userErrorMessage: "El OTP proporcionado no es correcto",
+        };
+      }
+
+      if (Date.now() > userFound.resetOtpExpireAt) {
+        throw {
+          status: 401,
+          userErrorMessage: "El OTP ha expirado",
+        };
+      }
+
+      const passwordHash = await bcrypt.hash(newPassword, 10);
+
+      await User.findOneAndUpdate(
+        { email },
+        {
+          password: passwordHash,
+          resetOtp: null,
+          resetOtpExpireAt: null,
+        }
+      );
+
+      return {
+        message: "Contraseña actualizada exitosamente",
+      };
     } catch (error) {
+      console.log(error);
       throw {
-        message: error.message,
+        message: error.userErrorMessage,
       };
     }
   }
 
-  async authStatus() {
+  async authStatus(userId) {
     try {
+      const userFound = await User.findById(userId).select(
+        "_id username email"
+      );
+
+      return {
+        message: "Sesion activa",
+        data: userFound.username,
+      };
     } catch (error) {
       throw {
-        message: error.message,
+        message: error.userErrorMessage,
       };
     }
   }
@@ -188,7 +278,7 @@ class AuthService {
       };
     } catch (error) {
       throw {
-        message: error.message,
+        message: error.userErrorMessage,
       };
     }
   }
