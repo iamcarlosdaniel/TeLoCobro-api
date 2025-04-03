@@ -26,7 +26,7 @@ const channelSchema = new mongoose.Schema(
     members: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
   {
-    timespans: true,
+    timestamps: true,
   }
 );
 
