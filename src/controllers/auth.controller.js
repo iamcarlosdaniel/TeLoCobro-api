@@ -29,6 +29,10 @@ class AuthController {
     }
   }
 
+  //async confirmPhoneNumber(req, res) {
+  //!no utilizar
+  //}
+
   async confirmAccount(req, res) {
     try {
       const { email, otp } = req.body;
@@ -184,7 +188,7 @@ class AuthController {
   async signOut(req, res) {
     try {
       const authToken =
-        req.cookies?.authToken || req.headers["authorization"]?.split(" ")[1];
+        req.cookies?.auth_token || req.headers["authorization"]?.split(" ")[1];
       const response = await AuthService.signOut(authToken);
 
       res.clearCookie("authToken", {

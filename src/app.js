@@ -5,6 +5,7 @@ import cors from "cors";
 import "dotenv/config";
 
 import authRoutes from "./v1/routes/auth.routes.js";
+import testRoutes from "./v1/routes/test.routes.js";
 
 const app = express();
 
@@ -20,5 +21,6 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/test", testRoutes);
 
 export default app;

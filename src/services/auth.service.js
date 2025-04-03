@@ -5,6 +5,7 @@ import Session from "../database/models/session.model.js";
 
 import { createAccessToken } from "../libs/createAccessToken.js";
 import { sendEmail } from "../libs/sendEmail.js";
+import { sendWhatsAppMessage } from "../libs/sendWhatsappMessage.js";
 
 class AuthService {
   async signUp(userData) {
@@ -61,6 +62,10 @@ class AuthService {
       };
     }
   }
+
+  //async confirmPhoneNumber(phoneNumber) {
+  //!NO UTILIZAR
+  //}
 
   async confirmAccount(email, otp) {
     try {

@@ -48,6 +48,18 @@ const userSchema = new mongoose.Schema(
     resetOtpExpireAt: {
       type: Number,
     },
+    //*Campos de verificación de teléfono
+    //?La api sigue activa?
+    phoneVerifyOtp: {
+      type: String,
+    },
+    phoneVerifyOtpExpireAt: {
+      type: Number,
+    },
+    isPhoneVerified: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

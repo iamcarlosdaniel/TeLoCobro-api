@@ -3,9 +3,10 @@ import Session from "../database/models/session.model.js";
 
 export const authMiddleware = async (req, res, next) => {
   try {
-    const { auth_token } = req.cookies;
+    const authToken =
+      req.cookies?.auth_token || req.headers["authorization"]?.split(" ")[1];
 
-    if (!auth_token) {
+    if (!authToken) {
       console.log("No hay token de acceso en la cookie");
       return res.status(401).send({
         status: "FAILED",
@@ -13,7 +14,7 @@ export const authMiddleware = async (req, res, next) => {
       });
     }
 
-    const sessionFound = await Session.findOne({ auth_token: auth_token });
+    const sessionFound = await Session.findOne({ auth_token: authToken });
 
     if (!sessionFound) {
       console.log("No hay una sesion activa para este token de acceso");
@@ -23,7 +24,7 @@ export const authMiddleware = async (req, res, next) => {
       });
     }
 
-    jwt.verify(auth_token, process.env.JWT_SECRET, (error, authData) => {
+    jwt.verify(authToken, process.env.JWT_SECRET, (error, authData) => {
       if (error) {
         return res.status(401).send({
           status: "FAILED",

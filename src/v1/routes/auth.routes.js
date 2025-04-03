@@ -7,6 +7,9 @@ const router = Router();
 
 router.post("/sign-up", AuthController.signUp);
 
+//!No utilizar
+//router.post("/confirm-phone-number", AuthController.confirmPhoneNumber);
+
 router.post("/confirm-account", AuthController.confirmAccount);
 
 router.post("/sign-in", AuthController.signIn);
