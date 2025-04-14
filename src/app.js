@@ -4,9 +4,13 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import "dotenv/config";
 
+import { apiReference } from "@scalar/express-api-reference";
+
 import authRoutes from "./v1/routes/auth.routes.js";
 import channelRoutes from "./v1/routes/channel.routes.js";
 import testRoutes from "./v1/routes/test.routes.js";
+
+import OpenApiSpecification from "./openapi.json" with {type: "json"}
 
 const app = express();
 
@@ -24,5 +28,15 @@ app.use(cookieParser());
 app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/channel", channelRoutes);
 app.use("/api/v1/test", testRoutes);
+
+app.use(
+  "/api/v1/reference",
+  apiReference({
+    theme: "none",
+    spec: {
+      content: OpenApiSpecification,
+    },
+  })
+);
 
 export default app;

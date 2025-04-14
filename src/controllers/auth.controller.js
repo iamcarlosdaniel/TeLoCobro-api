@@ -96,6 +96,24 @@ class AuthController {
     }
   }
 
+  async changeEmail(req, res) {
+    try {
+    } catch (error) {
+      res.status(error?.status || 500).send({
+        status: "FAILED",
+        data: {
+          error: [
+            {
+              message:
+                error?.message ||
+                "Ocurrio un error al procesar su solicitud. Por favor intente de nuevo mas tarde.",
+            },
+          ],
+        },
+      });
+    }
+  }
+
   async forgotPassword(req, res) {
     try {
       const { email } = req.body;
@@ -126,12 +144,11 @@ class AuthController {
 
   async resetPassword(req, res) {
     try {
-      const { email, otp, newPassword, confirmPassword } = req.body;
+      const { email, otp, new_password } = req.body;
       const response = await AuthService.resetPassword(
         email,
         otp,
-        newPassword,
-        confirmPassword
+        new_password
       );
 
       res.status(200).send({

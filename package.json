@@ -13,6 +13,7 @@
   "author": "Carlos Daniel Menchaca Arauz",
   "license": "ISC",
   "dependencies": {
+    "@scalar/express-api-reference": "^0.6.6",
     "axios": "^1.8.4",
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",

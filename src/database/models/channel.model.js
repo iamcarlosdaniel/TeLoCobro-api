@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const channelSchema = new mongoose.Schema(
   {
-    user_id: {
+    admin_user_id: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,

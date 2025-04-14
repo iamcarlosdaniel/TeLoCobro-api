@@ -1,5 +1,33 @@
 import mongoose from "mongoose";
 
+const locationSchema = new mongoose.Schema(
+  {
+    country: {
+      type: String,
+      trim: true,
+    },
+    state: {
+      type: String,
+      trim: true,
+    },
+    city: {
+      type: String,
+      trim: true,
+    },
+    address: {
+      type: String,
+      trim: true,
+    },
+    postal_code: {
+      type: String,
+      trim: true,
+    },
+  },
+  {
+    _id: false,
+  }
+);
+
 const userSchema = new mongoose.Schema(
   {
     username: {
@@ -18,6 +46,25 @@ const userSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    date_of_birth: {
+      type: Date,
+      required: true,
+      trim: true,
+    },
+    gender: {
+      type: String,
+      enum: ["hombre", "mujer", "prefiero no decir", "otro"],
+      default: "prefer_not_to_say",
+    },
+    profile_picture: {
+      type: String,
+    },
+    bio: {
+      type: String,
+      trim: true,
+      maxlength: 280,
+    },
+    location: locationSchema,
     phone_number: {
       type: String,
       trim: true,
@@ -32,6 +79,8 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+
+    //!Revisar si es necesario
     channels: [{ type: mongoose.Schema.Types.ObjectId, ref: "Channel" }],
     verifyOtp: {
       type: String,
@@ -60,6 +109,9 @@ const userSchema = new mongoose.Schema(
     isPhoneVerified: {
       type: Boolean,
       default: false,
+    },
+    lastLogin: {
+      type: Date,
     },
   },
   {

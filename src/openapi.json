@@ -1,0 +1,387 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "TeLoCobro - OpenAPI 3.1.1",
+    "description": "La API de TeLoCobro ofrece una interfaz robusta y flexible que permite a los desarrolladores interactuar con TeLoCobro de manera eficiente. Esta API está diseñada para facilitar el acceso y la gestión de datos, permitiendo realizar operaciones como consultar, actualizar, eliminar y crear información. Con un enfoque RESTful y una comunicación basada en HTTP(S), la API está optimizada para integrarse fácilmente en diversas plataformas y aplicaciones.\n\n**Developer:** [iamcarlosdaniel.com](https://iamcarlosdaniel.com)",
+    "version": "1.0.11"
+  },
+  "externalDocs": {
+    "description": "Find out more about Swagger",
+    "url": "http://swagger.io"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000/api/v1"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Endpoints relacionados con la autenticación y autorización de usuarios. Permiten gestionar el acceso a la API, incluyendo Sign up, Sign in y la obtención de tokens de acceso."
+    },
+    {
+      "name": "Channels",
+      "description": "Operations about user"
+    }
+  ],
+  "paths": {
+    "/auth/sign-up": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Sign up",
+        "description": "Permite a un nuevo usuario registrarse proporcionando su información personal y de contacto.",
+        "operationId": "signUpUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "description": "Nombre de usuario"
+                  },
+                  "first_name": {
+                    "type": "string",
+                    "description": "Nombres del usuario"
+                  },
+                  "last_name": {
+                    "type": "string",
+                    "description": "Apellidos del usuario"
+                  },
+                  "phone_number": {
+                    "type": "string",
+                    "description": "Número de teléfono del usuario"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Correo electrónico del usuario"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "Contraseña del usuario"
+                  },
+                  "confirm_password": {
+                    "type": "string",
+                    "description": "Confirmación de la contraseña"
+                  }
+                },
+                "required": [
+                  "username",
+                  "first_name",
+                  "last_name",
+                  "phone_number",
+                  "email",
+                  "password",
+                  "confirm_password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Registro exitoso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "Estado de la respuesta",
+                      "example": "OK"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "description": "Mensaje de éxito",
+                          "example": "Correo de confirmacion enviado exitosamente a support@iamcarlosdaniel.com"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationErrorResponse"
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorResponse"
+          }
+        }
+      }
+    },
+    "/auth/sign-in": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Sign in",
+        "description": "Permite a un usuario iniciar sesión proporcionando sus credenciales.",
+        "operationId": "signInUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Correo electrónico del usuario"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "Contraseña del usuario"
+                  }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Inicio de sesión exitoso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "Estado de la respuesta",
+                      "example": "OK"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "description": "Mensaje de éxito",
+                          "example": "Bienvenido de nuevo @iamcarlosdaniel."
+                        },
+                        "auth_token": {
+                          "type": "string",
+                          "description": "Token de autenticación",
+                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/ValidationErrorResponse"
+          },
+          "401": {
+            "description": "Cuenta no verificada",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "FAILED" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "message": {
+                                "type": "string",
+                                "example": "La cuenta no ha sido verificada. Por favor, verifica tu correo electrónico."
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Contraseña incorrecta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "FAILED" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "message": {
+                                "type": "string",
+                                "example": "La contraseña es incorrecta."
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuario no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "FAILED" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "message": {
+                                "type": "string",
+                                "example": "El correo proporcionado no está asociado a ningún usuario registrado."
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorResponse"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "responses": {
+      "ValidationErrorResponse": {
+        "description": "Error de validación",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "description": "Estado de la respuesta",
+                  "example": "FAILED"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "path": {
+                            "type": "array",
+                            "items": {
+                              "type": "string",
+                              "description": "Campo que no pasó la validación"
+                            }
+                          },
+                          "message": {
+                            "type": "string",
+                            "description": "Mensaje de error"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "example": {
+              "status": "FAILED",
+              "data": {
+                "error": [
+                  {
+                    "path": ["email"],
+                    "message": "El correo electrónico debe ser una dirección válida."
+                  },
+                  {
+                    "path": ["password"],
+                    "message": "La contraseña debe tener al menos 8 caracteres."
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "InternalServerErrorResponse": {
+        "description": "Error interno del servidor",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "type": "string",
+                  "example": "FAILED"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "message": {
+                            "type": "string",
+                            "example": "Ocurrió un error al procesar su solicitud. Por favor intente de nuevo más tarde."
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "parameters": {
+    "auth_token": {
+      "name": "Authorization",
+      "in": "header",
+      "required": true,
+      "description": "Token de autenticación del usuario.",
+      "schema": {
+        "type": "string",
+        "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      }
+    }
+  }
+}
