@@ -2,7 +2,7 @@
   "openapi": "3.1.1",
   "info": {
     "title": "TeLoCobro - OpenAPI 3.1.1",
-    "description": "La API de TeLoCobro ofrece una interfaz robusta y flexible que permite a los desarrolladores interactuar con TeLoCobro de manera eficiente. Esta API está diseñada para facilitar el acceso y la gestión de datos, permitiendo realizar operaciones como consultar, actualizar, eliminar y crear información. Con un enfoque RESTful y una comunicación basada en HTTP(S), la API está optimizada para integrarse fácilmente en diversas plataformas y aplicaciones.\n\n**Developer:** [iamcarlosdaniel.com](https://iamcarlosdaniel.com)",
+    "description": "La API de TeLoCobro ofrece una interfaz robusta y flexible que permite a los desarrolladores interactuar con TeLoCobro de manera eficiente. Esta API está diseñada para facilitar el acceso y la gestión de datos, permitiendo realizar operaciones como consultar, actualizar, eliminar y crear información. Con un enfoque RESTful y una comunicación basada en HTTP(S), la API está optimizada para integrarse fácilmente en diversas plataformas y aplicaciones.\n\n**Developer:** <br> Name: Carlos Daniel Menchaca Arauz <br> Linkedin: [@iamcarlosdaniel](https://www.linkedin.com/in/iamcarlosdaniel/) <br> Portfolio: [iamcarlosdaniel.com](https://iamcarlosdaniel.com)\n\n**Testers:**\n\nName: name <br> Linkedin: [@link]()\n\nName: name <br> Linkedin: [@link]()\n\nDocumentation written by <br> **Carlos Daniel Menchaca Arauz**",
     "version": "1.0.11"
   },
   "externalDocs": {
@@ -61,10 +61,12 @@
                   },
                   "password": {
                     "type": "string",
+                    "format": "password",
                     "description": "Contraseña del usuario"
                   },
                   "confirm_password": {
                     "type": "string",
+                    "format": "password",
                     "description": "Confirmación de la contraseña"
                   }
                 },
@@ -110,7 +112,93 @@
             }
           },
           "400": {
-            "$ref": "#/components/responses/ValidationErrorResponse"
+            "description": "Error de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "Estado de la respuesta",
+                      "example": "FAILED"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "description": "Campo que no pasó la validación"
+                                }
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "Mensaje de error"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "status": "FAILED",
+                  "data": {
+                    "error": [
+                      {
+                        "path": ["email"],
+                        "message": "El correo electrónico debe ser una dirección válida."
+                      },
+                      {
+                        "path": ["password"],
+                        "message": "La contraseña debe tener al menos 8 caracteres."
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflicto de datos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "example": "FAILED"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "message": {
+                                "type": "string",
+                                "example": "La direccion de correo proporcionada ya esta en uso."
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
           "500": {
             "$ref": "#/components/responses/InternalServerErrorResponse"
@@ -118,12 +206,12 @@
         }
       }
     },
-    "/auth/sign-in": {
+    "/auth/confirm_account": {
       "post": {
         "tags": ["Auth"],
-        "summary": "Sign in",
-        "description": "Permite a un usuario iniciar sesión proporcionando sus credenciales.",
-        "operationId": "signInUser",
+        "summary": "Confirm Account",
+        "description": "Permite a un usuario confirmar su cuenta utilizando un token de verificación enviado por correo electrónico.",
+        "operationId": "confirmAccountUser",
         "requestBody": {
           "required": true,
           "content": {
@@ -134,21 +222,21 @@
                   "email": {
                     "type": "string",
                     "format": "email",
-                    "description": "Correo electrónico del usuario"
+                    "description": "Correo electrónico del usuario a confirmar la cuenta"
                   },
-                  "password": {
+                  "otp": {
                     "type": "string",
-                    "description": "Contraseña del usuario"
+                    "description": "OTP de verificación enviado por correo electrónico"
                   }
                 },
-                "required": ["email", "password"]
+                "required": ["email", "otp"]
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "Inicio de sesión exitoso",
+            "description": "Confirmación de cuenta exitosa",
             "content": {
               "application/json": {
                 "schema": {
@@ -165,12 +253,7 @@
                         "message": {
                           "type": "string",
                           "description": "Mensaje de éxito",
-                          "example": "Bienvenido de nuevo @iamcarlosdaniel."
-                        },
-                        "auth_token": {
-                          "type": "string",
-                          "description": "Token de autenticación",
-                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                          "example": "Cuenta verificada exitosamente."
                         }
                       }
                     }
@@ -180,16 +263,17 @@
             }
           },
           "400": {
-            "$ref": "#/components/responses/ValidationErrorResponse"
-          },
-          "401": {
-            "description": "Cuenta no verificada",
+            "description": "Error de validación",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "FAILED" },
+                    "status": {
+                      "type": "string",
+                      "description": "Estado de la respuesta",
+                      "example": "FAILED"
+                    },
                     "data": {
                       "type": "object",
                       "properties": {
@@ -198,9 +282,16 @@
                           "items": {
                             "type": "object",
                             "properties": {
+                              "path": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "description": "Campo que no pasó la validación"
+                                }
+                              },
                               "message": {
                                 "type": "string",
-                                "example": "La cuenta no ha sido verificada. Por favor, verifica tu correo electrónico."
+                                "description": "Mensaje de error"
                               }
                             }
                           }
@@ -208,18 +299,29 @@
                       }
                     }
                   }
+                },
+                "example": {
+                  "status": "FAILED",
+                  "data": {
+                    "error": [
+                      {
+                        "path": ["email"],
+                        "message": "El correo electrónico debe ser una dirección válida."
+                      }
+                    ]
+                  }
                 }
               }
             }
           },
-          "403": {
-            "description": "Contraseña incorrecta",
+          "401": {
+            "description": "OTP incorrecto / expirado",
             "content": {
               "application/json": {
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "status": { "type": "string", "example": "FAILED" },
+                    "status": { "type": "string" },
                     "data": {
                       "type": "object",
                       "properties": {
@@ -229,12 +331,41 @@
                             "type": "object",
                             "properties": {
                               "message": {
-                                "type": "string",
-                                "example": "La contraseña es incorrecta."
+                                "type": "string"
                               }
                             }
                           }
                         }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "example1": {
+                    "summary": "OTP incorrecto",
+                    "description": "El OTP proporcionado es invalido.",
+                    "value": {
+                      "status": "FAILED",
+                      "data": {
+                        "error": [
+                          {
+                            "message": "El código de verificación proporcionado no es correcto."
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "example2": {
+                    "summary": "OTP expirado",
+                    "description": "El OTP proporcionado ha expirado.",
+                    "value": {
+                      "status": "FAILED",
+                      "data": {
+                        "error": [
+                          {
+                            "message": "El código de verificación ha expirado."
+                          }
+                        ]
                       }
                     }
                   }
@@ -277,40 +408,205 @@
           }
         }
       }
-    }
-  },
-  "components": {
-    "responses": {
-      "ValidationErrorResponse": {
-        "description": "Error de validación",
-        "content": {
-          "application/json": {
-            "schema": {
-              "type": "object",
-              "properties": {
-                "status": {
-                  "type": "string",
-                  "description": "Estado de la respuesta",
-                  "example": "FAILED"
+    },
+    "/auth/sign-in": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Sign in",
+        "description": "Permite a un usuario iniciar sesión proporcionando sus credenciales.",
+        "operationId": "signInUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Correo electrónico del usuario"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Contraseña del usuario"
+                  }
                 },
-                "data": {
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Inicio de sesión exitoso",
+            "content": {
+              "application/json": {
+                "schema": {
                   "type": "object",
                   "properties": {
-                    "error": {
-                      "type": "array",
-                      "items": {
-                        "type": "object",
-                        "properties": {
-                          "path": {
-                            "type": "array",
-                            "items": {
-                              "type": "string",
-                              "description": "Campo que no pasó la validación"
+                    "status": {
+                      "type": "string",
+                      "description": "Estado de la respuesta",
+                      "example": "OK"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "description": "Mensaje de éxito",
+                          "example": "Bienvenido de nuevo @iamcarlosdaniel."
+                        },
+                        "auth_token": {
+                          "type": "string",
+                          "description": "Token de autenticación",
+                          "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "Estado de la respuesta",
+                      "example": "FAILED"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "description": "Campo que no pasó la validación"
+                                }
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "Mensaje de error"
+                              }
                             }
-                          },
-                          "message": {
-                            "type": "string",
-                            "description": "Mensaje de error"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "status": "FAILED",
+                  "data": {
+                    "error": [
+                      {
+                        "path": ["email"],
+                        "message": "El correo electrónico debe ser una dirección válida."
+                      },
+                      {
+                        "path": ["password"],
+                        "message": "La contraseña debe tener al menos 8 caracteres."
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Cuenta no verificada / Contraseña incorrecta",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "message": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "example1": {
+                    "summary": "La cuenta no ha sido verificada",
+                    "description": "El usuario ha intentado iniciar sesión sin verificar su cuenta.",
+                    "value": {
+                      "status": "FAILED",
+                      "data": {
+                        "error": [
+                          {
+                            "message": "La cuenta no ha sido verificada. Por favor, verifica tu correo electrónico."
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "example2": {
+                    "summary": "Contraseña incorrecta",
+                    "description": "El usuario ha ingresado una contraseña incorrecta.",
+                    "value": {
+                      "status": "FAILED",
+                      "data": {
+                        "error": [
+                          {
+                            "message": "La contraseña es incorrecta."
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuario no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "FAILED" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "message": {
+                                "type": "string",
+                                "example": "El correo proporcionado no está asociado a ningún usuario registrado."
+                              }
+                            }
                           }
                         }
                       }
@@ -318,25 +614,593 @@
                   }
                 }
               }
-            },
-            "example": {
-              "status": "FAILED",
-              "data": {
-                "error": [
-                  {
-                    "path": ["email"],
-                    "message": "El correo electrónico debe ser una dirección válida."
-                  },
-                  {
-                    "path": ["password"],
-                    "message": "La contraseña debe tener al menos 8 caracteres."
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorResponse"
+          }
+        }
+      }
+    },
+    "/auth/forgot-password": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Forgot password",
+        "description": "Permite a un usuario solicitar un restablecimiento de contraseña enviando un correo electrónico con instrucciones.",
+        "operationId": "forgotPasswordUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Correo electrónico del usuario"
                   }
-                ]
+                },
+                "required": ["email"]
               }
             }
           }
+        },
+        "responses": {
+          "200": {
+            "description": "Solicitud de restablecimiento de contraseña exitosa",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "Estado de la respuesta",
+                      "example": "OK"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "description": "Mensaje de éxito",
+                          "example": "Correo de recuperacion enviado exitosamente a support@iamcarlosdaniel.com"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "Estado de la respuesta",
+                      "example": "FAILED"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "description": "Campo que no pasó la validación"
+                                }
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "Mensaje de error"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "status": "FAILED",
+                  "data": {
+                    "error": [
+                      {
+                        "path": ["email"],
+                        "message": "El correo electrónico debe ser una dirección válida."
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuario no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "FAILED" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "message": {
+                                "type": "string",
+                                "example": "El correo proporcionado no está asociado a ningún usuario registrado."
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorResponse"
+          }
         }
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Reset password",
+        "description": "Permite a un usuario restablecer su contraseña utilizando un OTP enviado por correo electrónico.",
+        "operationId": "resetPasswordUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Correo electrónico del usuario"
+                  },
+                  "otp": {
+                    "type": "string",
+                    "description": "OTP de verificación enviado por correo electrónico"
+                  },
+                  "new_password": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Nueva contraseña del usuario"
+                  },
+                  "confirm_password": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Confirmación de la nueva contraseña"
+                  }
+                },
+                "required": ["email", "otp", "new_password", "confirm_password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Restablecimiento de contraseña exitoso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "Estado de la respuesta",
+                      "example": "OK"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "description": "Mensaje de éxito",
+                          "example": "Contraseña actualizada exitosamente."
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error de validación",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "Estado de la respuesta",
+                      "example": "FAILED"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "path": {
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "description": "Campo que no pasó la validación"
+                                }
+                              },
+                              "message": {
+                                "type": "string",
+                                "description": "Mensaje de error"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "example": {
+                  "status": "FAILED",
+                  "data": {
+                    "error": [
+                      {
+                        "path": ["email"],
+                        "message": "El correo electrónico debe ser una dirección válida."
+                      },
+                      {
+                        "path": ["password"],
+                        "message": "La contraseña debe tener al menos 8 caracteres."
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "OTP incorrecto / expirado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "message": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "example1": {
+                    "summary": "OTP incorrecto",
+                    "description": "El OTP proporcionado es invalido.",
+                    "value": {
+                      "status": "FAILED",
+                      "data": {
+                        "error": [
+                          {
+                            "message": "El código de verificación proporcionado no es correcto."
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "example2": {
+                    "summary": "OTP expirado",
+                    "description": "El OTP proporcionado ha expirado.",
+                    "value": {
+                      "status": "FAILED",
+                      "data": {
+                        "error": [
+                          {
+                            "message": "El código de verificación ha expirado."
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Usuario no encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string", "example": "FAILED" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "message": {
+                                "type": "string",
+                                "example": "El correo proporcionado no está asociado a ningún usuario registrado."
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorResponse"
+          }
+        }
+      }
+    },
+    "/auth/status": {
+      "get": {
+        "tags": ["Auth"],
+        "summary": "Status",
+        "description": "Permite a un usuario verificar el estado de su sesión actual.",
+        "operationId": "statusUser",
+        "security": [{ "auth_token": [] }, { "auth_cookie": [] }],
+        "responses": {
+          "200": {
+            "description": "Estado de sesión exitoso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "Estado de la respuesta",
+                      "example": "OK"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "description": "Mensaje de éxito",
+                          "example": "Sesión activa."
+                        },
+                        "user": {
+                          "type": "object",
+                          "properties": {
+                            "username": {
+                              "type": "string",
+                              "description": "",
+                              "example": "@iamcarlosdaniel"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Llave de autenticación no válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "message": { "type": "string" }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "example1": {
+                    "summary": "Llave de autenticación no encontrada",
+                    "description": "El usuario ha intentado verificar su estado sin haber iniciado sesión previamente.",
+                    "value": {
+                      "status": "FAILED",
+                      "data": {
+                        "error": [
+                          { "message": "Por favor, vuelve a iniciar sesion." }
+                        ]
+                      }
+                    }
+                  },
+                  "example2": {
+                    "summary": "Llave de autenticación no valida",
+                    "description": "El usuario ha ingresado una llave de autenticación no válida.",
+                    "value": {
+                      "status": "FAILED",
+                      "data": {
+                        "error": [
+                          { "message": "Tu llave de acceso no es válida." }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorResponse"
+          }
+        }
+      }
+    },
+    "/auth/sign-out": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Sign out",
+        "description": "Permite a un usuario cerrar sesión invalidando su token de autenticación.",
+        "operationId": "signOutUser",
+        "security": [{ "auth_token": [] }, { "auth_cookie": [] }],
+        "responses": {
+          "200": {
+            "description": "Cierre de sesión exitoso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "Estado de la respuesta",
+                      "example": "OK"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "message": {
+                          "type": "string",
+                          "description": "Mensaje de éxito",
+                          "example": "Sesión cerrada exitosamente."
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Llave de autenticación no válida",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": { "type": "string" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "error": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "message": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "examples": {
+                  "example1": {
+                    "summary": "Llave de autenticación no encontrada",
+                    "description": "El usuario ha intentado cerrar sesión sin haber iniciado sesión previamente.",
+                    "value": {
+                      "status": "FAILED",
+                      "data": {
+                        "error": [
+                          {
+                            "message": "Por favor, vuelve a iniciar sesion."
+                          }
+                        ]
+                      }
+                    }
+                  },
+                  "example2": {
+                    "summary": "Llave de autenticación no valida",
+                    "description": "El usuario ha ingresado una llave de autenticación no válida.",
+                    "value": {
+                      "status": "FAILED",
+                      "data": {
+                        "error": [
+                          {
+                            "message": "Tu llave de acceso no es válida. Por favor, vuelve a iniciar sesión."
+                          }
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorResponse"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "auth_token_header": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "in": "header",
+        "name": "Authorization"
       },
+      "auth_token_cookie": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "auth_token",
+        "description": "El token en esta cookie es un JWT."
+      }
+    },
+    "responses": {
       "InternalServerErrorResponse": {
         "description": "Error interno del servidor",
         "content": {
@@ -369,18 +1233,6 @@
             }
           }
         }
-      }
-    }
-  },
-  "parameters": {
-    "auth_token": {
-      "name": "Authorization",
-      "in": "header",
-      "required": true,
-      "description": "Token de autenticación del usuario.",
-      "schema": {
-        "type": "string",
-        "example": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
       }
     }
   }

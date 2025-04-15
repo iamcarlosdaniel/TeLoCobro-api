@@ -78,21 +78,23 @@ class AuthService {
       if (!userFound) {
         throw {
           status: 404,
-          userErrorMessage: "Usuario no encontrado.",
+          userErrorMessage:
+            "El correo proporcionado no está asociado a ningún usuario registrado.",
         };
       }
 
       if (userFound.verifyOtp !== otp) {
         throw {
           status: 401,
-          userErrorMessage: "El OTP proporcionado no es correcto.",
+          userErrorMessage:
+            "El código de verificación proporcionado no es correcto.",
         };
       }
 
       if (Date.now() > userFound.verifyOtpExpireAt) {
         throw {
           status: 401,
-          userErrorMessage: "El OTP ha expirado.",
+          userErrorMessage: "El código de verificación ha expirado.",
         };
       }
 
@@ -137,7 +139,7 @@ class AuthService {
 
       if (!isMarched) {
         throw {
-          status: 403,
+          status: 401,
           userErrorMessage: "La contraseña es incorrecta.",
         };
       }
@@ -173,7 +175,7 @@ class AuthService {
 
       if (!userFound) {
         throw {
-          status: 500,
+          status: 404,
           userErrorMessage: "Verifique la direccion de correo proporcionada.",
         };
       }
@@ -224,14 +226,15 @@ class AuthService {
       if (userFound.resetOtp !== otp) {
         throw {
           status: 401,
-          userErrorMessage: "El OTP proporcionado no es correcto.",
+          userErrorMessage:
+            "El código de verificación proporcionado no es correcto.",
         };
       }
 
       if (Date.now() > userFound.resetOtpExpireAt) {
         throw {
           status: 401,
-          userErrorMessage: "El OTP ha expirado.",
+          userErrorMessage: "El código de verificación ha expirado.",
         };
       }
 
@@ -265,7 +268,9 @@ class AuthService {
 
       return {
         message: "Sesion activa.",
-        data: userFound.username,
+        user: {
+          username: userFound.username,
+        },
       };
     } catch (error) {
       throw {

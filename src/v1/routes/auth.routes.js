@@ -42,6 +42,6 @@ router.patch(
 
 router.get("/status", authMiddleware, AuthController.authStatus);
 
-router.post("/sign-out", AuthController.signOut);
+router.post("/sign-out", authMiddleware, AuthController.signOut);
 
 export default router;
