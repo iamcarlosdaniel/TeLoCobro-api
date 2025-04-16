@@ -5,22 +5,27 @@ const locationSchema = new mongoose.Schema(
     country: {
       type: String,
       trim: true,
+      required: true,
     },
     state: {
       type: String,
       trim: true,
+      required: true,
     },
     city: {
       type: String,
       trim: true,
+      required: true,
     },
     address: {
       type: String,
       trim: true,
+      required: true,
     },
     postal_code: {
       type: String,
       trim: true,
+      required: true,
     },
   },
   {
@@ -54,7 +59,7 @@ const userSchema = new mongoose.Schema(
     gender: {
       type: String,
       enum: ["hombre", "mujer", "prefiero no decir", "otro"],
-      default: "prefer_not_to_say",
+      required: true,
     },
     profile_picture: {
       type: String,

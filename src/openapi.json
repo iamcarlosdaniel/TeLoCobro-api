@@ -20,6 +20,10 @@
       "description": "Endpoints relacionados con la autenticación y autorización de usuarios. Permiten gestionar el acceso a la API, incluyendo Sign up, Sign in y la obtención de tokens de acceso."
     },
     {
+      "name": "Profile",
+      "description": "Endpoint relacionados con el perfil del usuario. Permiten gestionar la información personal y de contacto del usuario, así como la configuración de su cuenta."
+    },
+    {
       "name": "Channels",
       "description": "Operations about user"
     }
@@ -1171,6 +1175,40 @@
                           }
                         ]
                       }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "$ref": "#/components/responses/InternalServerErrorResponse"
+          }
+        }
+      }
+    },
+    "/profile": {
+      "get": {
+        "tags": ["Profile"],
+        "summary": "Get profile",
+        "description": "Permite a un usuario obtener la informacion de su perfil.",
+        "operationId": "getProfile",
+        "security": [{ "auth_token": [] }, { "auth_cookie": [] }],
+        "responses": {
+          "200": {
+            "description": "Perfil obtenido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "description": "Estado de la respuesta",
+                      "example": "OK"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/User"
                     }
                   }
                 }
