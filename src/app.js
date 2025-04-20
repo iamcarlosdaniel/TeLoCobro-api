@@ -9,6 +9,7 @@ import authRoutes from "./v1/routes/auth.routes.js";
 import profileRoutes from "./v1/routes/user.routes.js";
 import channelRoutes from "./v1/routes/channel.routes.js";
 import testRoutes from "./v1/routes/test.routes.js";
+import locationRoutes from "./v1/routes/location.routes.js";
 
 import OpenApiSpecification from "./openapi.json" with {type: "json"}
 
@@ -30,6 +31,7 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/v1/users", profileRoutes);
 app.use("/api/v1/channel", channelRoutes);
 app.use("/api/v1/test", testRoutes);
+app.use("/api/v1/location", locationRoutes);
 
 app.use(
   "/api/v1/reference",
