@@ -86,6 +86,6 @@ Puedes ver las dependencias del proyecto junto con sus versiones en el archivo [
 
 ---
 
-Hecho con ❤️ por [Carlos Daniel Menchaca Arauz](https://www.github.com/iamcarlosdaniel)
+Desarrollado por [Carlos Daniel Menchaca Arauz](https://www.github.com/iamcarlosdaniel)
 
 [GitHub](https://www.github.com/iamcarlosdaniel) - [Linkedin](https://www.linkedin.com/in/iamcarlosdaniel) - [iamcarlosdaniel.com](https://www.iamcarlosdaniel.com)
