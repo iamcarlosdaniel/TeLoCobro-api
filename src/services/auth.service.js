@@ -208,7 +208,10 @@ class AuthService {
 
   async forgotPassword(email) {
     try {
-      const userFound = await User.findOne({ email });
+      const userFound = await User.findOne({
+        email,
+        "account_verification.is_account_verified": true,
+      });
 
       if (!userFound) {
         throw {
@@ -223,8 +226,10 @@ class AuthService {
       await User.findOneAndUpdate(
         { email },
         {
-          resetOtp: otp,
-          resetOtpExpireAt: expireAt,
+          password_reset: {
+            reset_otp: otp,
+            reset_otp_expired_at: expireAt,
+          },
         }
       );
 
@@ -257,6 +262,8 @@ class AuthService {
         "account_verification.is_account_verified": true,
       });
 
+      console.log(userFound);
+
       if (!userFound) {
         throw {
           status: 404,
@@ -264,7 +271,7 @@ class AuthService {
         };
       }
 
-      if (userFound.resetOtp !== otp) {
+      if (userFound.password_reset.reset_otp !== otp) {
         throw {
           status: 401,
           userErrorMessage:
@@ -272,7 +279,7 @@ class AuthService {
         };
       }
 
-      if (Date.now() > userFound.resetOtpExpireAt) {
+      if (Date.now() > userFound.password_reset.reset_otp_expired_at) {
         throw {
           status: 401,
           userErrorMessage: "El código de verificación ha expirado.",
@@ -285,8 +292,10 @@ class AuthService {
         { email },
         {
           password: passwordHash,
-          resetOtp: null,
-          resetOtpExpireAt: null,
+          password_reset: {
+            reset_otp: null,
+            verify_otp_expire_at: null,
+          },
         }
       );
 

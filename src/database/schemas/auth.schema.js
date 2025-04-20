@@ -95,12 +95,9 @@ export const confirmAccountSchema = z
       .email({
         message: "El correo electrónico debe ser una dirección válida.",
       }),
-    otp: z
-      .string({ required_error: "El código de verificación es obligatorio." })
-      .length(6, { message: "El código de verificación debe tener 6 dígitos." })
-      .regex(/^\d+$/, {
-        message: "El código de verificación solo puede contener números.",
-      }),
+    otp: z.string({
+      required_error: "El código de verificación es obligatorio.",
+    }),
   })
   .strict();
 
@@ -138,7 +135,10 @@ export const resetPasswordSchema = z
       .email({
         message: "El correo electrónico debe ser una dirección válida.",
       }),
-    password: z
+    otp: z.string({
+      required_error: "El código de verificación es obligatorio.",
+    }),
+    new_password: z
       .string({ required_error: "La contraseña es obligatoria." })
       .min(8, { message: "La contraseña debe tener al menos 8 caracteres." })
       .regex(/[a-z]/, {
@@ -163,7 +163,7 @@ export const resetPasswordSchema = z
       }),
   })
   .strict()
-  .refine((data) => data.password === data.confirm_password, {
+  .refine((data) => data.new_password === data.confirm_password, {
     path: ["confirm_password"],
     message: "Las contraseñas no coinciden.",
   });

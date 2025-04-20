@@ -7,7 +7,7 @@ const accountVerificationSchema = new mongoose.Schema(
       trim: true,
     },
     verify_otp_expire_at: {
-      type: Number,
+      type: Date,
       trim: true,
     },
     is_account_verified: {
@@ -25,7 +25,7 @@ const phoneVerificationSchema = new mongoose.Schema(
       trim: true,
     },
     phone_verify_otp_expire_at: {
-      type: Number,
+      type: Date,
       trim: true,
     },
     is_phone_verified: {
@@ -43,7 +43,7 @@ const passwordResetSchema = new mongoose.Schema(
       trim: true,
     },
     reset_otp_expired_at: {
-      type: Number,
+      type: Date,
       trim: true,
     },
   },

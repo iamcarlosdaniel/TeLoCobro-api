@@ -194,7 +194,7 @@ class AuthController {
         req.cookies?.auth_token || req.headers["authorization"]?.split(" ")[1];
       const response = await AuthService.signOut(authToken);
 
-      res.clearCookie("authToken", {
+      res.clearCookie("auth_token", {
         httpOnly: true,
         secure: true,
         sameSite: "none",
