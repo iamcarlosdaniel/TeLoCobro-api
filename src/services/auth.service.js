@@ -1,7 +1,11 @@
 import bcrypt from "bcryptjs";
 
 import User from "../database/models/user.model.js";
+import City from "../database/models/city.model.js";
 import Session from "../database/models/session.model.js";
+
+import "../database/models/state.model.js";
+import "../database/models/country.model.js";
 
 import { createAccessToken } from "../libs/createAccessToken.js";
 import { sendEmail } from "../libs/sendEmail.js";
@@ -14,9 +18,13 @@ class AuthService {
     try {
       const { email, password } = userData;
 
-      const userFound = await User.findOne({ email });
+      const userFoundByEmail = await User.findOne({
+        email,
+        "account_verification.is_account_verified": true,
+      });
 
-      if (userFound) {
+      console.log(userFoundByEmail);
+      if (userFoundByEmail) {
         throw {
           status: 409,
           userErrorMessage:
@@ -24,29 +32,49 @@ class AuthService {
         };
       }
 
+      const userFoundByUsername = await User.findOne({
+        username: userData.username,
+        "account_verification.is_account_verified": true,
+      });
+
+      if (userFoundByUsername) {
+        throw {
+          status: 409,
+          userErrorMessage: "El nombre de usuario ya esta en uso.",
+        };
+      }
+
+      const cityFound = await City.findById(userData.location.city_id).populate(
+        {
+          path: "state_id",
+          populate: {
+            path: "country_id",
+          },
+        }
+      );
+
+      if (!cityFound) {
+        throw {
+          status: 404,
+          userErrorMessage:
+            "No se encontro la ciudad proporcionada. Por favor, verifique la ciudad.",
+        };
+      }
+
+      console.log(cityFound.state_id.country_id.phone_code);
+
       const passwordHash = await bcrypt.hash(password, 10);
       const otp = Math.floor(100000 + Math.random() * 900000);
       const expireAt = Date.now() + 15 * 60 * 1000;
 
       const newUser = new User({
-        username: userData.username,
-        first_name: userData.first_name,
-        last_name: userData.last_name,
-        date_of_birth: userData.date_of_birth,
-        gender: userData.gender,
-        profile_picture: userData.profile_picture,
-        bio: userData.bio,
-        location: {
-          country: userData.location.country,
-          state: userData.location.state,
-          city: userData.location.city,
-          address: userData.location.address,
-          postal_code: userData.location.postal_code,
-        },
-        email: email,
+        ...userData,
+        phone_number: `${cityFound.state_id.country_id.phone_code}${userData.phone_number}`,
         password: passwordHash,
-        verifyOtp: otp,
-        verifyOtpExpireAt: expireAt,
+        account_verification: {
+          verify_otp: otp,
+          verify_otp_expire_at: expireAt,
+        },
       });
 
       await newUser.save();
@@ -56,12 +84,7 @@ class AuthService {
         otp: otp,
       };
 
-      sendEmail(
-        email,
-        "Confirma tu cuenta",
-        "confirmAccountTemplate.",
-        context
-      );
+      sendEmail(email, "Confirma tu cuenta", "confirmAccountTemplate", context);
 
       return {
         message: `Correo de confirmacion enviado exitosamente a ${email}.`,
@@ -73,28 +96,29 @@ class AuthService {
     } catch (error) {
       console.log(error);
       throw {
+        status: error.status,
         message: error.userErrorMessage,
       };
     }
   }
 
   //async confirmPhoneNumber(phoneNumber) {
-  //!NO UTILIZAR
+  //!No disponible por el momento
   //}
 
-  async confirmAccount(email, otp) {
+  async confirmAccount(userId, email, otp) {
     try {
-      const userFound = await User.findOne({ email });
+      const userFound = await User.findOne({ _id: userId, email });
 
       if (!userFound) {
         throw {
           status: 404,
           userErrorMessage:
-            "El correo proporcionado no está asociado a ningún usuario registrado.",
+            "El correo proporcionado no es correcto o no esta asociado a ningun usuario.",
         };
       }
 
-      if (userFound.verifyOtp !== otp) {
+      if (userFound.account_verification.verify_otp !== otp) {
         throw {
           status: 401,
           userErrorMessage:
@@ -102,7 +126,7 @@ class AuthService {
         };
       }
 
-      if (Date.now() > userFound.verifyOtpExpireAt) {
+      if (Date.now() > userFound.account_verification.verify_otp_expire_at) {
         throw {
           status: 401,
           userErrorMessage: "El código de verificación ha expirado.",
@@ -110,17 +134,21 @@ class AuthService {
       }
 
       await User.findOneAndUpdate(
-        { email },
+        { _id: userId, email },
         {
-          isAccountVerified: true,
-          verifyOtp: null,
-          verifyOtpExpireAt: null,
+          account_verification: {
+            is_account_verified: true,
+            verify_otp: null,
+            verify_otp_expire_at: null,
+          },
         }
       );
 
       return { message: "Cuenta verificada exitosamente." };
     } catch (error) {
+      console.log(error);
       throw {
+        status: error.status,
         message: error.userErrorMessage,
       };
     }
@@ -128,21 +156,16 @@ class AuthService {
 
   async signIn(email, password) {
     try {
-      const userFound = await User.findOne({ email });
+      const userFound = await User.findOne({
+        email,
+        "account_verification.is_account_verified": true,
+      });
 
       if (!userFound) {
         throw {
           status: 404,
           userErrorMessage:
             "El correo proporcionado no está asociado a ningún usuario registrado.",
-        };
-      }
-
-      if (!userFound.isAccountVerified) {
-        throw {
-          status: 401,
-          userErrorMessage:
-            "La cuenta no ha sido verificada. Por favor, verifica tu correo electrónico.",
         };
       }
 
@@ -176,7 +199,10 @@ class AuthService {
       };
     } catch (error) {
       console.log(error);
-      throw { message: error.userErrorMessage };
+      throw {
+        status: error.status,
+        message: error.userErrorMessage,
+      };
     }
   }
 
@@ -218,6 +244,7 @@ class AuthService {
       };
     } catch (error) {
       throw {
+        status: error.status,
         message: error.userErrorMessage,
       };
     }
@@ -225,7 +252,10 @@ class AuthService {
 
   async resetPassword(email, otp, newPassword) {
     try {
-      const userFound = await User.findOne({ email });
+      const userFound = await User.findOne({
+        email,
+        "account_verification.is_account_verified": true,
+      });
 
       if (!userFound) {
         throw {
@@ -266,6 +296,7 @@ class AuthService {
     } catch (error) {
       console.log(error);
       throw {
+        status: error.status,
         message: error.userErrorMessage,
       };
     }
@@ -285,6 +316,7 @@ class AuthService {
       };
     } catch (error) {
       throw {
+        status: error.status,
         message: error.userErrorMessage,
       };
     }
@@ -298,6 +330,7 @@ class AuthService {
       };
     } catch (error) {
       throw {
+        status: error.status,
         message: error.userErrorMessage,
       };
     }

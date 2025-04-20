@@ -17,11 +17,11 @@ const router = Router();
 
 router.post("/sign-up", inputValidation(signUpSchema), AuthController.signUp);
 
-//!No utilizar
-//router.post("/confirm-phone-number", AuthController.confirmPhoneNumber);
+//!No disponible por el momento
+//router.post("/phone-number/confirm", AuthController.confirmPhoneNumber);
 
 router.post(
-  "/confirm-account",
+  "/sign-up/confirm",
   inputValidation(confirmAccountSchema),
   AuthController.confirmAccount
 );
@@ -29,13 +29,13 @@ router.post(
 router.post("/sign-in", inputValidation(signInSchema), AuthController.signIn);
 
 router.post(
-  "/forgot-password",
+  "/password/forgot",
   inputValidation(forgotPasswordSchema),
   AuthController.forgotPassword
 );
 
-router.patch(
-  "/reset-password",
+router.post(
+  "/password/reset",
   inputValidation(resetPasswordSchema),
   AuthController.resetPassword
 );

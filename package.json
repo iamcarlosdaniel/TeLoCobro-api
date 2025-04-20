@@ -8,7 +8,10 @@
     "doc": "docs"
   },
   "scripts": {
-    "dev": "nodemon src/index.js"
+    "dev": "nodemon src/index.js",
+    "seed:countries": "node src/database/seeds/country.seed.js",
+    "seed:states": "node src/database/seeds/state.seed.js",
+    "seed:cities": "node src/database/seeds/city.seed.js"
   },
   "author": "Carlos Daniel Menchaca Arauz",
   "license": "ISC",

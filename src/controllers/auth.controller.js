@@ -10,6 +10,10 @@ class AuthController {
         status: "OK",
         data: {
           message: response.message,
+          user: {
+            user_id: response.data.user_id,
+            email: response.data.email,
+          },
         },
       });
     } catch (error) {
@@ -30,13 +34,13 @@ class AuthController {
   }
 
   //async confirmPhoneNumber(req, res) {
-  //!no utilizar
+  //!No disponible por el momento
   //}
 
   async confirmAccount(req, res) {
     try {
-      const { email, otp } = req.body;
-      const response = await AuthService.confirmAccount(email, otp);
+      const { user_id, email, otp } = req.body;
+      const response = await AuthService.confirmAccount(user_id, email, otp);
 
       res.status(200).send({
         status: "OK",
@@ -81,24 +85,6 @@ class AuthController {
       });
     } catch (error) {
       console.log(error);
-      res.status(error?.status || 500).send({
-        status: "FAILED",
-        data: {
-          error: [
-            {
-              message:
-                error?.message ||
-                "Ocurrio un error al procesar su solicitud. Por favor intente de nuevo mas tarde.",
-            },
-          ],
-        },
-      });
-    }
-  }
-
-  async changeEmail(req, res) {
-    try {
-    } catch (error) {
       res.status(error?.status || 500).send({
         status: "FAILED",
         data: {

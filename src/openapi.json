@@ -20,8 +20,8 @@
       "description": "Endpoints relacionados con la autenticación y autorización de usuarios. Permiten gestionar el acceso a la API, incluyendo Sign up, Sign in y la obtención de tokens de acceso."
     },
     {
-      "name": "Profile",
-      "description": "Endpoint relacionados con el perfil del usuario. Permiten gestionar la información personal y de contacto del usuario, así como la configuración de su cuenta."
+      "name": "Users",
+      "description": "Endpoints relacionados con la gestión de usuarios. Permiten realizar operaciones CRUD sobre los datos de los usuarios, así como la gestión de su información personal y de contacto."
     },
     {
       "name": "Channels",
@@ -54,6 +54,29 @@
                     "type": "string",
                     "description": "Apellidos del usuario"
                   },
+                  "date_of_birth": {
+                    "type": "string",
+                    "description": "Fecha de nacimiento del usuario"
+                  },
+                  "gender": {
+                    "type": "string",
+                    "enum": ["male", "female", "other"],
+                    "description": "Género del usuario"
+                  },
+                  "bio": {
+                    "type": "string",
+                    "description": "Biografía del usuario"
+                  },
+                  "location": {
+                    "type": "object",
+                    "description": "Ubicación del usuario",
+                    "properties": {
+                      "city_id": {
+                        "type": "string",
+                        "description": "ID de la ciudad del usuario"
+                      }
+                    }
+                  },
                   "phone_number": {
                     "type": "string",
                     "description": "Número de teléfono del usuario"
@@ -78,6 +101,9 @@
                   "username",
                   "first_name",
                   "last_name",
+                  "date_of_birth",
+                  "gender",
+                  "bio",
                   "phone_number",
                   "email",
                   "password",
@@ -210,7 +236,37 @@
         }
       }
     },
-    "/auth/confirm_account": {
+    "/auth/sign-up/phone-number/confirm": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Confirm Phone Number",
+        "description": "Permite a un usuario confirmar su número de teléfono utilizando un OTP enviado por SMS. \n\n **Nota:** Este endpoint no esta disponible en la version actual.",
+        "operationId": "confirmPhoneNumberUser",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "phone_number": {
+                    "type": "string",
+                    "description": "Número de teléfono del usuario a confirmar"
+                  },
+                  "otp": {
+                    "type": "string",
+                    "description": "OTP de verificación enviado por SMS"
+                  }
+                },
+                "required": ["phone_number", "otp"]
+              }
+            }
+          }
+        },
+        "responses": {}
+      }
+    },
+    "/auth/sign-up/confirm": {
       "post": {
         "tags": ["Auth"],
         "summary": "Confirm Account",
@@ -626,7 +682,7 @@
         }
       }
     },
-    "/auth/forgot-password": {
+    "/auth/password/forgot": {
       "post": {
         "tags": ["Auth"],
         "summary": "Forgot password",
@@ -766,7 +822,7 @@
         }
       }
     },
-    "/auth/reset-password": {
+    "/auth/password/reset": {
       "post": {
         "tags": ["Auth"],
         "summary": "Reset password",
@@ -1187,9 +1243,9 @@
         }
       }
     },
-    "/profile": {
+    "/users/me": {
       "get": {
-        "tags": ["Profile"],
+        "tags": ["Users"],
         "summary": "Get profile",
         "description": "Permite a un usuario obtener la informacion de su perfil.",
         "operationId": "getProfile",
@@ -1217,6 +1273,127 @@
           },
           "500": {
             "$ref": "#/components/responses/InternalServerErrorResponse"
+          }
+        }
+      },
+      "put": {
+        "tags": ["Users"],
+        "summary": "Update profile",
+        "description": "Permite a un usuario actualizar la informacion de su perfil.",
+        "operationId": "updateProfile",
+        "security": [{ "auth_token": [] }, { "auth_cookie": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "username": {
+                    "type": "string",
+                    "description": "Nombre de usuario"
+                  },
+                  "first_name": {
+                    "type": "string",
+                    "description": "Nombres del usuario"
+                  },
+                  "last_name": {
+                    "type": "string",
+                    "description": "Apellidos del usuario"
+                  },
+                  "date_of_birth": {
+                    "type": "string",
+                    "description": "Fecha de nacimiento del usuario"
+                  },
+                  "gender": {
+                    "type": "string",
+                    "enum": ["male", "female", "other"],
+                    "description": "Género del usuario"
+                  },
+                  "bio": {
+                    "type": "string",
+                    "description": "Biografía del usuario"
+                  }
+                },
+                "required": ["username", "email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Perfil actualizado exitosamente",
+            "content": {
+              "application/json": {}
+            }
+          }
+        }
+      }
+    },
+    "/users/me/email": {
+      "post": {
+        "tags": ["Users"],
+        "summary": "Change email",
+        "description": "Permite al usuario actualmente autenticado solicitar cambiar su correo electrónico.",
+        "operationId": "changeEmail",
+        "security": [{ "auth_token": [] }, { "auth_cookie": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "new_email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Nuevo correo electrónico del usuario"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "password",
+                    "description": "Contraseña del usuario para verificar la identidad"
+                  }
+                },
+                "required": ["new_email", "password"]
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "$ref": "#/components/responses/InternalServerErrorResponse"
+            }
+          }
+        }
+      }
+    },
+    "/users/me/email/confirm": {
+      "patch": {
+        "tags": ["Users"],
+        "summary": "Confirm email change",
+        "description": "Permite al usuario actualmente autenticado confirmar el cambio de su correo electrónico.",
+        "operationId": "confirmEmailChange",
+        "security": [{ "auth_token": [] }, { "auth_cookie": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "otp": {
+                    "type": "string",
+                    "description": "OTP de verificación enviado al nuevo correo electrónico"
+                  }
+                },
+                "required": ["otp"]
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "$ref": "#/components/responses/InternalServerErrorResponse"
+            }
           }
         }
       }

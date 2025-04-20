@@ -7,4 +7,6 @@ const router = Router();
 
 router.post("/read-csv", upload.single("file"), TestController.readCSV);
 
+router.get("/ip", TestController.getIpInfo);
+
 export default router;

@@ -1,28 +1,62 @@
+import bcrypt from "bcryptjs";
+
 import User from "../database/models/user.model.js";
 
-class UserService {
-  async getUserById(userId) {
-    try {
-      const user = await User.findById(userId).select("-password -__v");
+import "../database/models/city.model.js";
+import "../database/models/state.model.js";
+import "../database/models/country.model.js";
 
-      if (!user) {
+import { sendEmail } from "../libs/sendEmail.js";
+
+class UserService {
+  async getProfile(userId) {
+    try {
+      const userFound = await User.findById(userId)
+        .select("-password -__v -account_verification")
+        .populate({
+          path: "location.city_id",
+          select: "-__v -createdAt -updatedAt -is_allowed",
+          populate: {
+            path: "state_id",
+            select: "-__v -createdAt -updatedAt -is_allowed",
+            populate: {
+              path: "country_id",
+              select: "-__v -createdAt -updatedAt -is_allowed",
+            },
+          },
+        })
+        .lean();
+
+      if (!userFound) {
         throw {
           status: 404,
-          message: "Usuario no encontrado.",
+          userErrorMessage: "Usuario no encontrado.",
         };
       }
 
+      const user = {
+        ...userFound,
+        location: {
+          country: userFound.location.city_id?.state_id?.country_id?.name,
+          state: userFound.location.city_id?.state_id?.name,
+          city: userFound.location.city_id?.name,
+        },
+      };
+
       return {
-        message: "Usuario encontrado.",
+        message: "Información obtenida exitosamente.",
+        user: user,
       };
     } catch (error) {
+      console.log(error);
       throw {
+        status: error.status,
         message: error.userErrorMessage,
       };
     }
   }
 
-  async editUserInformation(userId, userData) {
+  async updateProfile(userId, userData) {
     try {
       const userFound = await User.findById(userId).select("-password -__v");
 
@@ -36,15 +70,14 @@ class UserService {
       const updatedUser = await User.findByIdAndUpdate(
         userId,
         {
-          username: userData.username,
-          first_name: userData.first_name,
-          last_name: userData.last_name,
-          date_of_birth: userData.date_of_birth,
+          ...userData,
         },
         {
           new: true,
         }
-      ).select("-password -__v");
+      )
+        .select("-password -__v")
+        .lean();
 
       return {
         message: "Informacion actualizada exitosamente.",
@@ -52,14 +85,15 @@ class UserService {
       };
     } catch (error) {
       throw {
+        status: error.status,
         message: error.userErrorMessage,
       };
     }
   }
 
-  async emailChangeRequest(userData, newEmail) {
+  async changeEmail(userId, password, newEmail) {
     try {
-      const userFound = await User.findById(userData.id).select("__v");
+      const userFound = await User.findById(userId).select("__v");
 
       if (!userFound) {
         throw {
@@ -68,10 +102,7 @@ class UserService {
         };
       }
 
-      const isMarched = await bcrypt.compare(
-        userData.password,
-        userFound.password
-      );
+      const isMarched = await bcrypt.compare(password, userFound.password);
 
       if (!isMarched) {
         throw {
@@ -96,9 +127,9 @@ class UserService {
         otp: otp,
       };
       sendEmail(
-        email,
+        newEmail,
         "Solicitud de cambio de correo",
-        "changeEmailTemplate",
+        "changeEmailRequestTemplate",
         context
       );
 
@@ -107,6 +138,7 @@ class UserService {
       };
     } catch (error) {
       throw {
+        status: error.status,
         message: error.userErrorMessage,
       };
     }
@@ -114,9 +146,9 @@ class UserService {
 
   //!Nueva funcion
   //todo: revisar el flujo del cambio de correo
-  async changeEmail(userId, newEmail) {
+  async confirmEmail(userId, otp, newEmail) {
     try {
-      const userFound = await User.findById(userId);
+      const userFound = await User.findById(userId).select("__v");
 
       if (!userFound) {
         throw {
@@ -125,39 +157,72 @@ class UserService {
         };
       }
 
-      const emailFound = await User.findOne({ email: newEmail });
-
-      if (emailFound) {
+      if (userFound.resetOtp !== otp) {
         throw {
-          status: 409,
+          status: 403,
           userErrorMessage:
-            "La direccion de correo proporcionada ya esta en uso.",
+            "El código de verificación proporcionado no es correcto.",
         };
       }
 
-      const otp = Math.floor(100000 + Math.random() * 900000);
-      const expireAt = Date.now() + 15 * 60 * 1000;
+      const currentDate = Date.now();
 
-      await User.findOneAndUpdate(
-        { _id: userId },
-        {
-          verifyOtp: otp,
-          verifyOtpExpireAt: expireAt,
-        }
-      );
+      if (userFound.resetOtpExpireAt < currentDate) {
+        throw {
+          status: 403,
+          userErrorMessage: "El código de verificación ha expirado.",
+        };
+      }
 
-      const context = {
-        domain: process.env.CLIENT_URL,
-        otp: otp,
-      };
-
-      sendEmail(email, "Confirma tu cuenta", "confirmAccountTemplate", context);
+      await User.findByIdAndUpdate(userId, {
+        email: newEmail,
+        resetOtp: null,
+        resetOtpExpireAt: null,
+      });
 
       return {
         message: "Correo actualizado exitosamente.",
       };
     } catch (error) {
       throw {
+        status: error.status,
+        message: error.userErrorMessage,
+      };
+    }
+  }
+
+  async changePassword(userId, password, newPassword) {
+    try {
+      const userFound = await User.findById(userId).select("__v");
+
+      if (!userFound) {
+        throw {
+          status: 404,
+          userErrorMessage: "Usuario no encontrado.",
+        };
+      }
+
+      const isMarched = await bcrypt.compare(password, userFound.password);
+
+      if (!isMarched) {
+        throw {
+          status: 403,
+          userErrorMessage: "La contraseña es incorrecta.",
+        };
+      }
+
+      const passwordHash = await bcrypt.hash(newPassword, 10);
+
+      await User.findByIdAndUpdate(userId, {
+        password: passwordHash,
+      });
+
+      return {
+        message: "Contraseña actualizada exitosamente.",
+      };
+    } catch (error) {
+      throw {
+        status: error.status,
         message: error.userErrorMessage,
       };
     }
