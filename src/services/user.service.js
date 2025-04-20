@@ -93,7 +93,7 @@ class UserService {
 
   async changeEmail(userId, password, newEmail) {
     try {
-      const userFound = await User.findById(userId).select("__v");
+      const userFound = await User.findById(userId);
 
       if (!userFound) {
         throw {
@@ -115,10 +115,13 @@ class UserService {
       const expireAt = Date.now() + 15 * 60 * 1000;
 
       await User.findOneAndUpdate(
-        { email },
+        { _id: userId },
         {
-          resetOtp: otp,
-          resetOtpExpireAt: expireAt,
+          account_verification: {
+            is_account_verified: true,
+            verify_otp: otp,
+            verify_otp_expire_at: expireAt,
+          },
         }
       );
 
@@ -129,7 +132,7 @@ class UserService {
       sendEmail(
         newEmail,
         "Solicitud de cambio de correo",
-        "changeEmailRequestTemplate",
+        "confirmEmailTemplate",
         context
       );
 
@@ -137,6 +140,7 @@ class UserService {
         message: `Se ha enviado un correo a ${newEmail} con instrucciones para confirmar el cambio de correo.`,
       };
     } catch (error) {
+      console.log(error);
       throw {
         status: error.status,
         message: error.userErrorMessage,
@@ -148,7 +152,7 @@ class UserService {
   //todo: revisar el flujo del cambio de correo
   async confirmEmail(userId, otp, newEmail) {
     try {
-      const userFound = await User.findById(userId).select("__v");
+      const userFound = await User.findById(userId);
 
       if (!userFound) {
         throw {
@@ -157,7 +161,7 @@ class UserService {
         };
       }
 
-      if (userFound.resetOtp !== otp) {
+      if (userFound.account_verification.verify_otp !== otp) {
         throw {
           status: 403,
           userErrorMessage:
@@ -167,7 +171,7 @@ class UserService {
 
       const currentDate = Date.now();
 
-      if (userFound.resetOtpExpireAt < currentDate) {
+      if (userFound.account_verification.verify_otp_expire_at < currentDate) {
         throw {
           status: 403,
           userErrorMessage: "El código de verificación ha expirado.",
@@ -176,8 +180,11 @@ class UserService {
 
       await User.findByIdAndUpdate(userId, {
         email: newEmail,
-        resetOtp: null,
-        resetOtpExpireAt: null,
+        account_verification: {
+          is_account_verified: true,
+          verify_otp: null,
+          verify_otp_expire_at: null,
+        },
       });
 
       return {
@@ -193,7 +200,7 @@ class UserService {
 
   async changePassword(userId, password, newPassword) {
     try {
-      const userFound = await User.findById(userId).select("__v");
+      const userFound = await User.findById(userId);
 
       if (!userFound) {
         throw {

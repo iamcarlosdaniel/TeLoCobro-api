@@ -52,8 +52,13 @@ class UserController {
 
   async changeEmail(req, res) {
     try {
-      const { userData, newEmail } = req.body;
-      const response = await userService.emailChangeRequest(userData, newEmail);
+      const userId = req.authData.id;
+      const { password, new_email } = req.body;
+      const response = await userService.changeEmail(
+        userId,
+        password,
+        new_email
+      );
 
       res.status(200).send({
         status: "OK",
@@ -81,11 +86,7 @@ class UserController {
     try {
       const userId = req.authData.id;
       const { otp, new_email } = req.body;
-      const response = await userService.confirmEmailChange(
-        userId,
-        otp,
-        new_email
-      );
+      const response = await userService.confirmEmail(userId, otp, new_email);
 
       res.status(200).send({
         status: "OK",
