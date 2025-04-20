@@ -33,9 +33,10 @@ export const signUpSchema = z
       .regex(/^\d{4}-\d{2}-\d{2}$/, {
         message: "La fecha de nacimiento debe tener el formato YYYY-MM-DD.",
       }),
-    gender: z
-      .string({ required_error: "El género es obligatorio." })
-      .min(1, { message: "El género debe ser proporcionado." }),
+    gender: z.enum(["male", "female", "other"], {
+      required_error: "El género es obligatorio.",
+      invalid_type_error: "El género debe ser 'male', 'female' o 'other'.",
+    }),
     bio: z.string({ required_error: "La biografía es obligatoria." }).max(500, {
       message: "La biografía no puede exceder los 500 caracteres.",
     }),
