@@ -1,3 +1,26 @@
+/**
+ * Author: Carlos Daniel Menchaca Arauz
+ * License: Apache License 2.0
+ * Description: Este archivo define los esquemas de verificación de cuenta, teléfono y restablecimiento de contraseña para usuarios.
+ * Creation Date: April 23, 2025
+ *
+ * Copyright (c) 2025 Carlos Daniel Menchaca Arauz
+ *
+ * Repository on GitHub: https://github.com/iamcarlosdaniel/auth-module-mern-stack-api
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 import mongoose from "mongoose";
 
 const accountVerificationSchema = new mongoose.Schema(

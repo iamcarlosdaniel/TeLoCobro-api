@@ -2,7 +2,23 @@ import mongoose from "mongoose";
 
 const companySchema = new mongoose.Schema(
   {
+    user_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      unique: true,
+    },
     name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    nit: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    legal_name: {
       type: String,
       required: true,
       trim: true,
@@ -12,19 +28,15 @@ const companySchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    phone_number: {
-      type: String,
-      trim: true,
-    },
-    email: {
-      type: String,
+    city_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "City",
       required: true,
-      trim: true,
-      unique: true,
     },
-    website: {
+    status: {
       type: String,
-      trim: true,
+      enum: ["active", "inactive"],
+      default: "inactive",
     },
   },
   {

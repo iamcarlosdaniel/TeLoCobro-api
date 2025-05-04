@@ -5,8 +5,11 @@ import { authMiddleware } from "../../middlewares/auth.middleware.js";
 
 const router = Router();
 
-router.post("/create", authMiddleware, channelController.createChannel);
-
-router.get("/my-channels", authMiddleware, channelController.getAllMyChannels);
-
+router.get("/me", authMiddleware, channelController.getMyChannel);
+router.put("/activate", authMiddleware, channelController.activateMyChannel);
+router.put(
+  "/desactivate",
+  authMiddleware,
+  channelController.deactivateMyChannel
+);
 export default router;

@@ -1,18 +1,11 @@
 import channelService from "../services/channel.service.js";
 
 class ChannelController {
-  async createChannel(req, res) {
+  async getMyChannel(req, res) {
     try {
-      const userId = req.authData.id;
-      const channelData = req.body;
-      const channel = await channelService.createChannel(userId, channelData);
+      const response = await channelService.getMyChannel(req.authData.id);
 
-      res.status(200).send({
-        status: "OK",
-        data: {
-          channel,
-        },
-      });
+      return res.status(200).json(response);
     } catch (error) {
       console.log(error);
       res.status(error?.status || 500).send({
@@ -30,17 +23,34 @@ class ChannelController {
     }
   }
 
-  async getAllMyChannels(req, res) {
+  async activateMyChannel(req, res) {
     try {
-      const userId = req.authData.id;
-      const channels = await channelService.getAllMyChannels(userId);
+      const response = await channelService.activateMyChannel(req.authData.id);
 
-      res.status(200).send({
-        status: "OK",
+      return res.status(200).json(response);
+    } catch (error) {
+      console.log(error);
+      res.status(error?.status || 500).send({
+        status: "FAILED",
         data: {
-          channels,
+          error: [
+            {
+              message:
+                error?.message ||
+                "Ocurrio un error al procesar su solicitud. Por favor intente de nuevo mas tarde.",
+            },
+          ],
         },
       });
+    }
+  }
+  async deactivateMyChannel(req, res) {
+    try {
+      const response = await channelService.deactivateMyChannel(
+        req.authData.id
+      );
+
+      return res.status(200).json(response);
     } catch (error) {
       console.log(error);
       res.status(error?.status || 500).send({

@@ -1,133 +1,109 @@
-import { title } from "process";
 import Channel from "../database/models/channel.model.js";
+import Company from "../database/models/company.model.js";
 
 class ChannelService {
-  async getAllMyChannels(userId) {
+  async getMyChannel(userId) {
     try {
-      const channels = await Channel.find({ user_id: userId }).populate(
-        "members",
-        "_id username email"
-      );
+      const companyFound = await Company.findOne({ user_id: userId });
 
-      return {
-        message: "Canales encontrados",
-        data: channels,
-      };
-    } catch (error) {
-      throw {
-        message: error.userErrorMessage,
-      };
-    }
-  }
-
-  async getChannelById(userId, channelId) {
-    try {
-      const channel = await Channel.findOne({
-        _id: channelId,
-        user_id: userId,
-      }).populate("members", "_id username email");
-      return {
-        message: "Canal encontrado",
-        data: channel,
-      };
-    } catch (error) {
-      throw {
-        message: error.userErrorMessage,
-      };
-    }
-  }
-
-  async createChannel(userId, channelData) {
-    try {
-      const channel = await Channel.create({
-        user_id: userId,
-        title: channelData.title,
-        description: channelData.description,
-      });
-      await channel.save();
-      return {
-        message: "Canal creado correctamente",
-      };
-    } catch (error) {
-      throw {
-        message: error.userErrorMessage,
-      };
-    }
-  }
-
-  async updateChannelInformation(userId, channelId, channelData) {
-    try {
-      const channel = await Channel.findOneAndUpdate(
-        {
-          _id: channelId,
-          user_id: userId,
-        },
-        {
-          title: channelData.title,
-          description: channelData.description,
-        },
-        { new: true }
-      ).populate("members", "_id username email");
-
-      return {
-        message: "Canal editado correctamente",
-        data: channel,
-      };
-    } catch (error) {
-      throw {
-        message: error.userErrorMessage,
-      };
-    }
-  }
-
-  async deleteChannel(userId, channelId) {
-    try {
-      await Channel.findOneAndDelete({
-        _id: channelId,
-        user_id: userId,
-      });
-      return {
-        message: "Canal eliminado correctamente",
-      };
-    } catch (error) {
-      throw {
-        message: error.userErrorMessage,
-      };
-    }
-  }
-
-  //todo: ver si es correcto el buscar el usuario que se quiere anadir al canal en esta funcion
-  async addMemberToChannel(adminUserId, channelId, membersEmail) {
-    try {
-      const channelFound = await Channel.findOne({
-        _id: channelId,
-        admin_user_id: adminUserId,
-      });
-
-      if (!channelFound) {
+      if (!companyFound) {
         throw {
           status: 404,
-          userErrorMessage: "No se ha encontrado el canal",
+          userErrorMessage: "No tienes una empresa registrada.",
+        };
+      }
+
+      const channelFound = await Channel.findOne({
+        company_id: companyFound.id,
+      });
+
+      if (companyFound.user_id.toString() !== userId) {
+        throw {
+          status: 403,
+          userErrorMessage: "No tienes permisos para acceder a este canal.",
+        };
+      }
+
+      return {
+        message: "Información obtenida exitosamente.",
+        data: channelFound,
+      };
+    } catch (error) {
+      console.log(error);
+      throw {
+        status: error.status,
+        message: error.userErrorMessage,
+      };
+    }
+  }
+
+  async activateMyChannel(userId) {
+    try {
+      const companyFound = await Company.findOne({ user_id: userId });
+
+      if (!companyFound) {
+        throw {
+          status: 404,
+          userErrorMessage: "No tienes una empresa registrada.",
+        };
+      }
+
+      if (companyFound.user_id.toString() !== userId) {
+        throw {
+          status: 403,
+          userErrorMessage: "No tienes permisos para acceder a este canal.",
         };
       }
 
       await Channel.findOneAndUpdate(
-        {
-          _id: channelId,
-          admin_user_id: adminUserId,
-        },
-        {
-          $addToSet: { members: membersEmail },
-        },
+        { company_id: companyFound._id },
+        { status: "active" },
         { new: true }
-      ).populate("members", "_id username email");
+      );
 
       return {
-        message: "Miembro agregado correctamente",
-        data: channel,
+        message: "Canal activado exitosamente.",
       };
     } catch (error) {
+      console.log(error);
       throw {
+        status: error.status,
+        message: error.userErrorMessage,
+      };
+    }
+  }
+
+  async deactivateMyChannel(userId) {
+    try {
+      const companyFound = await Company.findOne({ user_id: userId });
+
+      if (!companyFound) {
+        throw {
+          status: 404,
+          userErrorMessage: "No tienes una empresa registrada.",
+        };
+      }
+
+      if (companyFound.user_id.toString() !== userId) {
+        throw {
+          status: 403,
+          userErrorMessage: "No tienes permisos para acceder a este canal.",
+        };
+      }
+
+      await Channel.findOneAndUpdate(
+        { company_id: companyFound._id },
+        { status: "inactive" },
+        { new: true }
+      );
+
+      return {
+        message: "Canal desactivado exitosamente.",
+      };
+    } catch (error) {
+      console.log(error);
+      throw {
+        status: error.status,
         message: error.userErrorMessage,
       };
     }

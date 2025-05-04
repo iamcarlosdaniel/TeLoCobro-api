@@ -2,28 +2,17 @@ import mongoose from "mongoose";
 
 const channelSchema = new mongoose.Schema(
   {
-    admin_user_id: {
+    company_id: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      ref: "Company",
       required: true,
+      unique: true,
     },
-    title: {
+    status: {
       type: String,
-      required: true,
-      trim: true,
+      enum: ["active", "inactive"],
+      default: "inactive",
     },
-    description: {
-      type: String,
-      required: true,
-      trim: true,
-    },
-    inviteCode: {
-      type: String,
-    },
-    inviteCodeExpireAt: {
-      type: Number,
-    },
-    members: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
   {
     timestamps: true,
