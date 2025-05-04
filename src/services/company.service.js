@@ -150,6 +150,12 @@ class CompanyService {
         };
       }
 
+      await Channel.findOneAndUpdate(
+        { company_id: companyFound._id },
+        { status: "inactive" },
+        { new: true }
+      );
+
       return {
         message: "Empresa desactivada exitosamente.",
       };

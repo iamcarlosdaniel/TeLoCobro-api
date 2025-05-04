@@ -55,6 +55,14 @@ class ChannelService {
         };
       }
 
+      if (companyFound.status !== "active") {
+        throw {
+          status: 403,
+          userErrorMessage:
+            "No puedes activar el canal si la empresa no está activa.",
+        };
+      }
+
       await Channel.findOneAndUpdate(
         { company_id: companyFound._id },
         { status: "active" },
