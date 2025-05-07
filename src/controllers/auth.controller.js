@@ -10,10 +10,7 @@ class AuthController {
         status: "OK",
         data: {
           message: response.message,
-          user: {
-            user_id: response.data.user_id,
-            email: response.data.email,
-          },
+          user: response.data,
         },
       });
     } catch (error) {
@@ -33,14 +30,10 @@ class AuthController {
     }
   }
 
-  //async confirmPhoneNumber(req, res) {
-  //!No disponible por el momento
-  //}
-
   async confirmAccount(req, res) {
     try {
-      const { user_id, email, otp } = req.body;
-      const response = await AuthService.confirmAccount(user_id, email, otp);
+      const { email, otp } = req.body;
+      const response = await AuthService.confirmAccount(email, otp);
 
       res.status(200).send({
         status: "OK",
@@ -80,7 +73,7 @@ class AuthController {
         status: "OK",
         data: {
           message: response.message,
-          authToken: response.data,
+          auth_token: response.data,
         },
       });
     } catch (error) {
@@ -168,7 +161,7 @@ class AuthController {
         status: "OK",
         data: {
           message: response.message,
-          data: response.data,
+          user: response.data,
         },
       });
     } catch (error) {

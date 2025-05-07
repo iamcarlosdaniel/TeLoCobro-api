@@ -17,9 +17,6 @@ const router = Router();
 
 router.post("/sign-up", inputValidation(signUpSchema), AuthController.signUp);
 
-//!No disponible por el momento
-//router.post("/phone-number/confirm", AuthController.confirmPhoneNumber);
-
 router.post(
   "/sign-up/confirm",
   inputValidation(confirmAccountSchema),

@@ -148,8 +148,6 @@ class UserService {
     }
   }
 
-  //!Nueva funcion
-  //todo: revisar el flujo del cambio de correo
   async confirmEmail(userId, otp, newEmail) {
     try {
       const userFound = await User.findById(userId);

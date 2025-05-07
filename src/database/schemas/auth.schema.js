@@ -2,18 +2,6 @@ import { z } from "zod";
 
 export const signUpSchema = z
   .object({
-    username: z
-      .string({ required_error: "El nombre de usuario es obligatorio." })
-      .min(3, {
-        message: "El nombre de usuario debe tener al menos 3 caracteres.",
-      })
-      .max(15, {
-        message: "El nombre de usuario no puede exceder los 15 caracteres.",
-      })
-      .regex(/^[a-zA-Z0-9_]+$/, {
-        message:
-          "El nombre de usuario solo puede contener letras, números y guiones bajos.",
-      }),
     first_name: z
       .string({ required_error: "El nombre es obligatorio." })
       .min(2, { message: "El nombre debe tener al menos 2 caracteres." })
@@ -37,14 +25,16 @@ export const signUpSchema = z
       required_error: "El género es obligatorio.",
       invalid_type_error: "El género debe ser 'male', 'female' o 'other'.",
     }),
-    bio: z.string({ required_error: "La biografía es obligatoria." }).max(500, {
-      message: "La biografía no puede exceder los 500 caracteres.",
-    }),
-    location: z.object({
-      city_id: z
-        .string({ required_error: "El ID de la ciudad es obligatorio." })
-        .min(24, { message: "El ID de la ciudad debe tener 24 caracteres." }),
-    }),
+    city_id: z
+      .string({ required_error: "El ID de la ciudad es obligatorio." })
+      .min(24, { message: "El ID de la ciudad debe tener 24 caracteres." }),
+    ci: z
+      .string({
+        required_error: "La cédula de identidad es obligatoria.",
+      })
+      .min(7, {
+        message: "La cédula de identidad debe tener al menos 7 caracteres.",
+      }),
     phone_number: z
       .string({ required_error: "El número de teléfono es obligatorio." })
       .min(8, {
@@ -90,7 +80,6 @@ export const signUpSchema = z
 
 export const confirmAccountSchema = z
   .object({
-    user_id: z.string({ required_error: "El ID de usuario es obligatorio." }),
     email: z
       .string({ required_error: "El correo electrónico es obligatorio." })
       .email({

@@ -6,6 +6,7 @@ const citySchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+
     is_allowed: {
       type: Boolean,
       default: true,

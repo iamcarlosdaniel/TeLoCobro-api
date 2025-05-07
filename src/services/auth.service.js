@@ -8,22 +8,15 @@ import "../database/models/state.model.js";
 import "../database/models/country.model.js";
 
 import { createAccessToken } from "../libs/createAccessToken.js";
+import { createOTP } from "../libs/createOneTimePassword.js";
 import { sendEmail } from "../libs/sendEmail.js";
-
-//!No utilizar
-import { sendWhatsAppMessage } from "../libs/sendWhatsappMessage.js";
 
 class AuthService {
   async signUp(userData) {
     try {
-      const { email, password } = userData;
+      const { email } = userData;
+      const userFoundByEmail = await User.findOne({ email });
 
-      const userFoundByEmail = await User.findOne({
-        email,
-        "account_verification.is_account_verified": true,
-      });
-
-      console.log(userFoundByEmail);
       if (userFoundByEmail) {
         throw {
           status: 409,
@@ -32,26 +25,12 @@ class AuthService {
         };
       }
 
-      const userFoundByUsername = await User.findOne({
-        username: userData.username,
-        "account_verification.is_account_verified": true,
+      const cityFound = await City.findById(userData.city_id).populate({
+        path: "state_id",
+        populate: {
+          path: "country_id",
+        },
       });
-
-      if (userFoundByUsername) {
-        throw {
-          status: 409,
-          userErrorMessage: "El nombre de usuario ya esta en uso.",
-        };
-      }
-
-      const cityFound = await City.findById(userData.location.city_id).populate(
-        {
-          path: "state_id",
-          populate: {
-            path: "country_id",
-          },
-        }
-      );
 
       if (!cityFound) {
         throw {
@@ -61,23 +40,17 @@ class AuthService {
         };
       }
 
-      console.log(cityFound.state_id.country_id.phone_code);
-
-      const passwordHash = await bcrypt.hash(password, 10);
-      const otp = Math.floor(100000 + Math.random() * 900000);
-      const expireAt = Date.now() + 15 * 60 * 1000;
+      const phone_code = cityFound.state_id.country_id.phone_code;
+      const passwordHash = await bcrypt.hash(userData.password, 10);
+      const { otp, expireAt } = await createOTP(100000, 999999, 3);
 
       const newUser = new User({
         ...userData,
-        phone_number: `${cityFound.state_id.country_id.phone_code}${userData.phone_number}`,
+        phone_number: phone_code + userData.phone_number,
         password: passwordHash,
-        account_verification: {
-          verify_otp: otp,
-          verify_otp_expire_at: expireAt,
-        },
+        email_verify_otp: otp,
+        email_verify_otp_expire_at: expireAt,
       });
-
-      await newUser.save();
 
       const context = {
         domain: process.env.CLIENT_URL,
@@ -86,10 +59,11 @@ class AuthService {
 
       sendEmail(email, "Confirma tu cuenta", "confirmAccountTemplate", context);
 
+      await newUser.save();
+
       return {
         message: `Correo de confirmacion enviado exitosamente a ${email}.`,
         data: {
-          user_id: newUser._id,
           email: newUser.email,
         },
       };
@@ -102,13 +76,9 @@ class AuthService {
     }
   }
 
-  //async confirmPhoneNumber(phoneNumber) {
-  //!No disponible por el momento
-  //}
-
-  async confirmAccount(userId, email, otp) {
+  async confirmAccount(email, otp) {
     try {
-      const userFound = await User.findOne({ _id: userId, email });
+      const userFound = await User.findOne({ email });
 
       if (!userFound) {
         throw {
@@ -118,7 +88,7 @@ class AuthService {
         };
       }
 
-      if (userFound.account_verification.verify_otp !== otp) {
+      if (userFound.email_verify_otp !== otp) {
         throw {
           status: 401,
           userErrorMessage:
@@ -126,7 +96,7 @@ class AuthService {
         };
       }
 
-      if (Date.now() > userFound.account_verification.verify_otp_expire_at) {
+      if (Date.now() > userFound.email_verify_otp_expire_at) {
         throw {
           status: 401,
           userErrorMessage: "El código de verificación ha expirado.",
@@ -134,15 +104,20 @@ class AuthService {
       }
 
       await User.findOneAndUpdate(
-        { _id: userId, email },
+        { email },
         {
-          account_verification: {
-            is_account_verified: true,
-            verify_otp: null,
-            verify_otp_expire_at: null,
-          },
-        }
+          email_verify_otp: null,
+          email_verify_otp_expired_at: null,
+          is_email_verified: true,
+        },
+        { new: true }
       );
+
+      const context = {
+        domain: process.env.CLIENT_URL,
+      };
+
+      sendEmail(email, "Bienvenido a TeLoCobro", "welcomeTemplate", context);
 
       return { message: "Cuenta verificada exitosamente." };
     } catch (error) {
@@ -158,7 +133,6 @@ class AuthService {
     try {
       const userFound = await User.findOne({
         email,
-        "account_verification.is_account_verified": true,
       });
 
       if (!userFound) {
@@ -181,20 +155,21 @@ class AuthService {
       const authToken = await createAccessToken(
         {
           id: userFound._id,
-          username: userFound.username,
         },
         "7d"
       );
 
       const newSession = new Session({
+        user_type: "user",
         user_id: userFound._id,
+        device_type: "web",
         auth_token: authToken,
       });
 
       await newSession.save();
 
       return {
-        message: `Bienvenido de nuevo ${userFound.username}.`,
+        message: `Bienvenido de nuevo ${userFound.first_name}`,
         data: authToken,
       };
     } catch (error) {
@@ -210,7 +185,6 @@ class AuthService {
     try {
       const userFound = await User.findOne({
         email,
-        "account_verification.is_account_verified": true,
       });
 
       if (!userFound) {
@@ -220,16 +194,13 @@ class AuthService {
         };
       }
 
-      const otp = Math.floor(100000 + Math.random() * 900000);
-      const expireAt = Date.now() + 15 * 60 * 1000;
+      const { otp, expireAt } = await createOTP(100000, 999999, 3);
 
       await User.findOneAndUpdate(
         { email },
         {
-          password_reset: {
-            reset_otp: otp,
-            reset_otp_expired_at: expireAt,
-          },
+          password_reset_otp: otp,
+          password_reset_otp_expire_at: expireAt,
         }
       );
 
@@ -259,7 +230,6 @@ class AuthService {
     try {
       const userFound = await User.findOne({
         email,
-        "account_verification.is_account_verified": true,
       });
 
       console.log(userFound);
@@ -271,7 +241,7 @@ class AuthService {
         };
       }
 
-      if (userFound.password_reset.reset_otp !== otp) {
+      if (userFound.password_reset_otp !== otp) {
         throw {
           status: 401,
           userErrorMessage:
@@ -279,7 +249,7 @@ class AuthService {
         };
       }
 
-      if (Date.now() > userFound.password_reset.reset_otp_expired_at) {
+      if (Date.now() > userFound.password_reset_otp_expire_at) {
         throw {
           status: 401,
           userErrorMessage: "El código de verificación ha expirado.",
@@ -292,10 +262,8 @@ class AuthService {
         { email },
         {
           password: passwordHash,
-          password_reset: {
-            reset_otp: null,
-            verify_otp_expire_at: null,
-          },
+          password_reset_otp: null,
+          password_reset_otp_expire_at: null,
         }
       );
 
@@ -314,14 +282,12 @@ class AuthService {
   async authStatus(userId) {
     try {
       const userFound = await User.findById(userId).select(
-        "_id username email"
+        "_id first_name last_name date_of_birth gender ci phone_number email"
       );
 
       return {
         message: "Sesion activa.",
-        user: {
-          username: userFound.username,
-        },
+        data: userFound,
       };
     } catch (error) {
       throw {
