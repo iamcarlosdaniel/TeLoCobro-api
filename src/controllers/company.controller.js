@@ -3,7 +3,7 @@ import companyService from "../services/company.service.js";
 class CompanyController {
   async getMyCompany(req, res) {
     try {
-      const response = await companyService.getMyCompany(req.authData.id);
+      const response = await companyService.getMyCompany(req.authUserData.id);
 
       return res.status(200).json(response);
     } catch (error) {
@@ -26,7 +26,7 @@ class CompanyController {
   async createCompany(req, res) {
     try {
       const response = await companyService.createCompany(
-        req.authData.id,
+        req.authUserData.id,
         req.body
       );
 
@@ -51,7 +51,7 @@ class CompanyController {
   async updateCompany(req, res) {
     try {
       const response = await companyService.updateCompany(
-        req.authData.id,
+        req.authUserData.id,
         req.body
       );
 

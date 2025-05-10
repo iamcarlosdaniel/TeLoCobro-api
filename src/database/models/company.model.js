@@ -33,11 +33,6 @@ const companySchema = new mongoose.Schema(
       ref: "City",
       required: true,
     },
-    status: {
-      type: String,
-      enum: ["active", "inactive"],
-      default: "inactive",
-    },
   },
   {
     timestamps: true,

@@ -2,18 +2,14 @@ import { Router } from "express";
 
 import companyController from "../../controllers/company.controller.js";
 
-import { authMiddleware } from "../../middlewares/auth.middleware.js";
+import { userAuthMiddleware } from "../../middlewares/userAuth.middleware.js";
 
 const router = Router();
 
-router.get("/me", authMiddleware, companyController.getMyCompany);
+router.get("/", userAuthMiddleware, companyController.getMyCompany);
 
-router.post("/", authMiddleware, companyController.createCompany);
+router.post("/", userAuthMiddleware, companyController.createCompany);
 
-router.put("/", authMiddleware, companyController.updateCompany);
-
-router.put("/activate", authMiddleware, companyController.activateCompany);
-
-router.put("/desactivate", authMiddleware, companyController.deactivateCompany);
+router.put("/", userAuthMiddleware, companyController.updateCompany);
 
 export default router;

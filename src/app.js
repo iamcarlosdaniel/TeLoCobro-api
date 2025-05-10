@@ -5,12 +5,15 @@ import cors from "cors";
 
 import { apiReference } from "@scalar/express-api-reference";
 
-import authRoutes from "./v1/routes/auth.routes.js";
-import profileRoutes from "./v1/routes/user.routes.js";
-import channelRoutes from "./v1/routes/channel.routes.js";
-import testRoutes from "./v1/routes/test.routes.js";
+import userAuthRoutes from "./v1/routes/userAuth.routes.js";
+import userRoutes from "./v1/routes/user.routes.js";
+
+import clientsAuthRoutes from "./v1/routes/clientAuth.routes.js";
+import clientsRoutes from "./v1/routes/client.routes.js";
+
 import locationRoutes from "./v1/routes/location.routes.js";
 import companyRoutes from "./v1/routes/company.routes.js";
+import testRoutes from "./v1/routes/test.routes.js";
 
 import OpenApiSpecification from "./openapi.json" with {type: "json"}
 
@@ -28,12 +31,17 @@ app.use(express.json());
 app.use(cookieParser());
 app.set('trust proxy', true);
 
-app.use("/api/v1/auth", authRoutes);
-app.use("/api/v1/users", profileRoutes);
-app.use("/api/v1/channel", channelRoutes);
+//Rutas para manejar la atenticacion y manejo de los usuarios
+app.use("/api/v1/auth/users", userAuthRoutes);
+app.use("/api/v1/users", userRoutes);
+
+//Rutas para manejar la atenticacion y manejo de los clientes
+app.use("/api/v1/auth/clients", clientsAuthRoutes);
+app.use("/api/v1/clients", clientsRoutes);
+
 app.use("/api/v1/test", testRoutes);
 app.use("/api/v1/location", locationRoutes);
-app.use("/api/v1/company", companyRoutes);
+app.use("/api/v1/companies", companyRoutes);
 
 app.use(
   "/api/v1/reference",

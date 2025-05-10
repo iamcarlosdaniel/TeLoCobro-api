@@ -1,18 +1,12 @@
 import { Router } from "express";
 
 import UserService from "../../controllers/user.controller.js";
-import { authMiddleware } from "../../middlewares/auth.middleware.js";
+import { userAuthMiddleware } from "../../middlewares/userAuth.middleware.js";
 
 const router = Router();
 
-router.get("/me", authMiddleware, UserService.getProfile);
+router.get("/me", userAuthMiddleware, UserService.getProfile);
 
-router.patch("/me", authMiddleware, UserService.updateProfile);
-
-router.post("/me/email", authMiddleware, UserService.changeEmail);
-
-router.post("/me/email/confirm", authMiddleware, UserService.confirmEmail);
-
-router.patch("/me/password", authMiddleware, UserService.changePassword);
+router.put("/me", userAuthMiddleware, UserService.updateProfile);
 
 export default router;

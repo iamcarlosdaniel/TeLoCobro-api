@@ -12,9 +12,11 @@ class UserService {
   async getProfile(userId) {
     try {
       const userFound = await User.findById(userId)
-        .select("-password -__v -account_verification")
+        .select(
+          "-password -email_verify_otp -email_verify_otp_expire_at -is_email_verified -password_reset_otp -password_reset_otp_expire_at -__v"
+        )
         .populate({
-          path: "location.city_id",
+          path: "city_id",
           select: "-__v -createdAt -updatedAt -is_allowed",
           populate: {
             path: "state_id",
@@ -35,12 +37,21 @@ class UserService {
       }
 
       const user = {
-        ...userFound,
+        _id: userFound._id,
+        first_name: userFound.first_name,
+        last_name: userFound.last_name,
+        date_of_birth: userFound.date,
+        gender: userFound.gender,
         location: {
-          country: userFound.location.city_id?.state_id?.country_id?.name,
-          state: userFound.location.city_id?.state_id?.name,
-          city: userFound.location.city_id?.name,
+          country: userFound.city_id?.state_id?.country_id?.name,
+          state: userFound.city_id?.state_id?.name,
+          city: userFound.city_id?.name,
         },
+        ci: userFound.ci,
+        phone_number: userFound.phone_number,
+        email: userFound.email,
+        createAt: userFound.createdAt,
+        updateAt: userFound.updatedAt,
       };
 
       return {
@@ -56,174 +67,48 @@ class UserService {
     }
   }
 
+  //!EN REVISION
   async updateProfile(userId, userData) {
     try {
-      const userFound = await User.findById(userId).select("-password -__v");
+      const cityFound = await City.findById(userData.city_id);
 
-      if (!userFound) {
+      if (!cityFound) {
         throw {
           status: 404,
-          userErrorMessage: "Usuario no encontrado.",
+          userErrorMessage:
+            "No se encontro la ciudad proporcionada. Por favor, verifique la ciudad.",
         };
       }
 
       const updatedUser = await User.findByIdAndUpdate(
         userId,
         {
-          ...userData,
+          first_name: userData.first_name,
+          last_name: userData.last_name,
+          date_of_birth: userData.date_of_birth,
+          gender: userData.gender,
+          city_id: userData.city_id,
+          ci: userData.ci,
+          phone_number: userData.phone_number,
         },
         {
           new: true,
         }
       )
-        .select("-password -__v")
+        .select(
+          "-password -email_verify_otp -email_verify_otp_expire_at -is_email_verified -password_reset_otp -password_reset_otp_expire_at -__v"
+        )
         .lean();
+
+      if (!updatedUser) {
+        throw {
+          status: 404,
+          userErrorMessage: "Usuario no encontrado.",
+        };
+      }
 
       return {
         message: "Informacion actualizada exitosamente.",
-        data: updatedUser,
-      };
-    } catch (error) {
-      throw {
-        status: error.status,
-        message: error.userErrorMessage,
-      };
-    }
-  }
-
-  async changeEmail(userId, password, newEmail) {
-    try {
-      const userFound = await User.findById(userId);
-
-      if (!userFound) {
-        throw {
-          status: 404,
-          userErrorMessage: "Usuario no encontrado.",
-        };
-      }
-
-      const isMarched = await bcrypt.compare(password, userFound.password);
-
-      if (!isMarched) {
-        throw {
-          status: 403,
-          userErrorMessage: "La contraseña es incorrecta.",
-        };
-      }
-
-      const otp = Math.floor(100000 + Math.random() * 900000);
-      const expireAt = Date.now() + 15 * 60 * 1000;
-
-      await User.findOneAndUpdate(
-        { _id: userId },
-        {
-          account_verification: {
-            is_account_verified: true,
-            verify_otp: otp,
-            verify_otp_expire_at: expireAt,
-          },
-        }
-      );
-
-      const context = {
-        domain: process.env.CLIENT_URL,
-        otp: otp,
-      };
-      sendEmail(
-        newEmail,
-        "Solicitud de cambio de correo",
-        "confirmEmailTemplate",
-        context
-      );
-
-      return {
-        message: `Se ha enviado un correo a ${newEmail} con instrucciones para confirmar el cambio de correo.`,
-      };
-    } catch (error) {
-      console.log(error);
-      throw {
-        status: error.status,
-        message: error.userErrorMessage,
-      };
-    }
-  }
-
-  async confirmEmail(userId, otp, newEmail) {
-    try {
-      const userFound = await User.findById(userId);
-
-      if (!userFound) {
-        throw {
-          status: 404,
-          userErrorMessage: "Usuario no encontrado.",
-        };
-      }
-
-      if (userFound.account_verification.verify_otp !== otp) {
-        throw {
-          status: 403,
-          userErrorMessage:
-            "El código de verificación proporcionado no es correcto.",
-        };
-      }
-
-      const currentDate = Date.now();
-
-      if (userFound.account_verification.verify_otp_expire_at < currentDate) {
-        throw {
-          status: 403,
-          userErrorMessage: "El código de verificación ha expirado.",
-        };
-      }
-
-      await User.findByIdAndUpdate(userId, {
-        email: newEmail,
-        account_verification: {
-          is_account_verified: true,
-          verify_otp: null,
-          verify_otp_expire_at: null,
-        },
-      });
-
-      return {
-        message: "Correo actualizado exitosamente.",
-      };
-    } catch (error) {
-      throw {
-        status: error.status,
-        message: error.userErrorMessage,
-      };
-    }
-  }
-
-  async changePassword(userId, password, newPassword) {
-    try {
-      const userFound = await User.findById(userId);
-
-      if (!userFound) {
-        throw {
-          status: 404,
-          userErrorMessage: "Usuario no encontrado.",
-        };
-      }
-
-      const isMarched = await bcrypt.compare(password, userFound.password);
-
-      if (!isMarched) {
-        throw {
-          status: 403,
-          userErrorMessage: "La contraseña es incorrecta.",
-        };
-      }
-
-      const passwordHash = await bcrypt.hash(newPassword, 10);
-
-      await User.findByIdAndUpdate(userId, {
-        password: passwordHash,
-      });
-
-      return {
-        message: "Contraseña actualizada exitosamente.",
       };
     } catch (error) {
       throw {

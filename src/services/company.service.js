@@ -1,11 +1,24 @@
 import Company from "../database/models/company.model.js";
 import City from "../database/models/city.model.js";
-import Channel from "../database/models/channel.model.js";
 
 class CompanyService {
   async getMyCompany(userId) {
     try {
-      const companyFound = await Company.findOne({ user_id: userId });
+      const companyFound = await Company.findOne({ user_id: userId })
+        .select("-_v")
+        .populate({
+          path: "city_id",
+          select: "-__v -createdAt -updatedAt -is_allowed",
+          populate: {
+            path: "state_id",
+            select: "-__v -createdAt -updatedAt -is_allowed",
+            populate: {
+              path: "country_id",
+              select: "-__v -createdAt -updatedAt -is_allowed",
+            },
+          },
+        })
+        .lean();
 
       if (!companyFound) {
         throw {
@@ -14,9 +27,25 @@ class CompanyService {
         };
       }
 
+      const company = {
+        _id: companyFound._id,
+        user_id: companyFound.user_id,
+        name: companyFound.name,
+        nit: companyFound.nit,
+        legal_name: companyFound.legal_name,
+        description: companyFound.description,
+        location: {
+          country: companyFound.city_id?.state_id?.country_id?.name,
+          state: companyFound.city_id?.state_id?.name,
+          city: companyFound.city_id?.name,
+        },
+        createAt: companyFound.createdAt,
+        updateAt: companyFound.updatedAt,
+      };
+
       return {
         message: "Información obtenida exitosamente.",
-        data: companyFound,
+        data: company,
       };
     } catch (error) {
       console.log(error);
@@ -48,15 +77,9 @@ class CompanyService {
         };
       }
 
-      const newCompany = await Company.create({
+      await Company.create({
         ...companyData,
-        status: "active",
         user_id: userId,
-      });
-
-      await Channel.create({
-        company_id: newCompany._id,
-        status: "inactive",
       });
 
       return {
@@ -97,67 +120,6 @@ class CompanyService {
 
       return {
         message: "Empresa actualizada exitosamente.",
-        data: companyFound,
-      };
-    } catch (error) {
-      console.log(error);
-      throw {
-        status: error.status,
-        message: error.userErrorMessage,
-      };
-    }
-  }
-
-  async activateCompany(userId) {
-    try {
-      const companyFound = await Company.findOneAndUpdate(
-        { user_id: userId },
-        { status: "active" },
-        { new: true }
-      );
-
-      if (!companyFound) {
-        throw {
-          status: 404,
-          userErrorMessage: "No tienes una empresa registrada.",
-        };
-      }
-
-      return {
-        message: "Empresa activada exitosamente.",
-      };
-    } catch (error) {
-      console.log(error);
-      throw {
-        status: error.status,
-        message: error.userErrorMessage,
-      };
-    }
-  }
-
-  async deactivateCompany(userId) {
-    try {
-      const companyFound = await Company.findOneAndUpdate(
-        { user_id: userId },
-        { status: "inactive" },
-        { new: true }
-      );
-
-      if (!companyFound) {
-        throw {
-          status: 404,
-          userErrorMessage: "No tienes una empresa registrada.",
-        };
-      }
-
-      await Channel.findOneAndUpdate(
-        { company_id: companyFound._id },
-        { status: "inactive" },
-        { new: true }
-      );
-
-      return {
-        message: "Empresa desactivada exitosamente.",
       };
     } catch (error) {
       console.log(error);
