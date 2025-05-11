@@ -13,7 +13,6 @@ import clientsRoutes from "./v1/routes/client.routes.js";
 
 import locationRoutes from "./v1/routes/location.routes.js";
 import companyRoutes from "./v1/routes/company.routes.js";
-import testRoutes from "./v1/routes/test.routes.js";
 
 import OpenApiSpecification from "./openapi.json" with {type: "json"}
 
@@ -39,7 +38,6 @@ app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/auth/clients", clientsAuthRoutes);
 app.use("/api/v1/clients", clientsRoutes);
 
-app.use("/api/v1/test", testRoutes);
 app.use("/api/v1/location", locationRoutes);
 app.use("/api/v1/companies", companyRoutes);
 

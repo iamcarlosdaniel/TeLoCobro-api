@@ -7,6 +7,11 @@ const clientSchema = new mongoose.Schema(
       ref: "Company",
       required: true,
     },
+    erp_client_id: {
+      type: String,
+      unique: true,
+      required: true,
+    },
     name: {
       type: String,
       required: true,
@@ -28,11 +33,9 @@ const clientSchema = new mongoose.Schema(
     //** Acceso a la app movil**//
     app_verify_otp: {
       type: String,
-      required: true,
     },
     app_verify_otp_expired_at: {
       type: Date,
-      required: true,
     },
     app_access_enable: {
       type: Boolean,
