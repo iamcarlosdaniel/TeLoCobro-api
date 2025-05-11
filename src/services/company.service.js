@@ -45,7 +45,7 @@ class CompanyService {
 
       return {
         message: "Información obtenida exitosamente.",
-        data: company,
+        company: company,
       };
     } catch (error) {
       console.log(error);

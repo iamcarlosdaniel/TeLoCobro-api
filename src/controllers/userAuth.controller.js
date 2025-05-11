@@ -8,10 +8,7 @@ class UserAuthController {
 
       res.status(200).send({
         status: "OK",
-        data: {
-          message: response.message,
-          user: response.data,
-        },
+        data: response,
       });
     } catch (error) {
       console.log(error);
@@ -37,9 +34,7 @@ class UserAuthController {
 
       res.status(200).send({
         status: "OK",
-        data: {
-          message: response.message,
-        },
+        data: response,
       });
     } catch (error) {
       console.log(error);
@@ -71,10 +66,7 @@ class UserAuthController {
 
       res.status(200).send({
         status: "OK",
-        data: {
-          message: response.message,
-          auth_token: response.data,
-        },
+        data: response,
       });
     } catch (error) {
       console.log(error);
@@ -100,9 +92,7 @@ class UserAuthController {
 
       res.status(200).send({
         status: "OK",
-        data: {
-          message: response.message,
-        },
+        data: response,
       });
     } catch (error) {
       console.log(error);
@@ -132,9 +122,7 @@ class UserAuthController {
 
       res.status(200).send({
         status: "OK",
-        data: {
-          message: response.message,
-        },
+        data: response,
       });
     } catch (error) {
       console.log(error);
@@ -159,10 +147,7 @@ class UserAuthController {
 
       res.status(200).send({
         status: "OK",
-        data: {
-          message: response.message,
-          user: response.data,
-        },
+        data: response,
       });
     } catch (error) {
       console.log(error);
@@ -195,9 +180,7 @@ class UserAuthController {
 
       res.status(200).send({
         status: "OK",
-        data: {
-          message: response.message,
-        },
+        data: response,
       });
     } catch (error) {
       console.log(error);

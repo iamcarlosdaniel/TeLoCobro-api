@@ -32,7 +32,7 @@ class UserController {
       const response = await userService.updateProfile(userId, userData);
       res.status(200).send({
         status: "OK",
-        data: response.message,
+        data: response,
       });
     } catch (error) {
       res.status(error?.status || 500).send({

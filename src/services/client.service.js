@@ -4,15 +4,34 @@ import Company from "../database/models/company.model.js";
 import { parseCSV } from "../libs/csvParser.js";
 
 class ClientService {
-  async getMyClientById(id) {
+  async getMyClientById(userId, clientId) {
     try {
-      const client = await Client.findById(id).select(
+      const companyFound = await Company.findOne({ user_id: userId });
+
+      if (!companyFound) {
+        throw {
+          status: 404,
+          userErrorMessage: "No tienes una empresa registrada.",
+        };
+      }
+      const clientFound = await Client.findOne({
+        _id: clientId,
+        company_id: companyFound._id,
+      }).select(
         "-app_verify_otp -app_verify_otp_expired_at -app_access_enable"
       );
-      if (!client) {
-        throw new Error("Client not found");
+
+      if (!clientFound) {
+        throw {
+          status: 404,
+          userErrorMessage: "No tienes una empresa registrada.",
+        };
       }
-      return client;
+
+      return {
+        message: "Cliente encontrado",
+        client: clientFound,
+      };
     } catch (error) {
       console.log(error);
       throw {
@@ -24,9 +43,7 @@ class ClientService {
 
   async getAllMyClients(userId) {
     try {
-      const companyFound = await Company.findOne({ user_id: userId }).select(
-        "-app_verify_otp -app_verify_otp_expired_at -app_access_enable"
-      );
+      const companyFound = await Company.findOne({ user_id: userId });
       if (!companyFound) {
         throw {
           status: 404,
@@ -34,14 +51,22 @@ class ClientService {
         };
       }
 
-      const clients = await Client.find({ company_id: companyFound._id });
+      const clients = await Client.find({
+        company_id: companyFound._id,
+      }).select(
+        "-app_verify_otp -app_verify_otp_expired_at -app_access_enable"
+      );
+
       if (!clients) {
         throw {
           status: 404,
           userErrorMessage: "No tienes una empresa registrada.",
         };
       }
-      return clients;
+      return {
+        message: "Clientes encontrados",
+        clients: clients,
+      };
     } catch (error) {
       console.log(error);
       throw {

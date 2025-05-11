@@ -3,7 +3,10 @@ import clientService from "../services/client.service.js";
 class ClientController {
   async getMyClientById(req, res) {
     try {
-      const response = await clientService.getMyClientById(req.params.id);
+      const response = await clientService.getMyClientById(
+        req.authUserData.id,
+        req.params.id
+      );
       res.status(200).send({
         status: "OK",
         data: response,

@@ -63,7 +63,7 @@ class UserAuthService {
 
       return {
         message: `Correo de confirmacion enviado exitosamente a ${email}.`,
-        data: {
+        user: {
           email: newUser.email,
         },
       };
@@ -170,7 +170,7 @@ class UserAuthService {
 
       return {
         message: `Bienvenido de nuevo ${userFound.first_name}`,
-        data: authToken,
+        auth_token: authToken,
       };
     } catch (error) {
       console.log(error);
@@ -287,7 +287,7 @@ class UserAuthService {
 
       return {
         message: "Sesion activa.",
-        data: userFound,
+        user: userFound,
       };
     } catch (error) {
       throw {
