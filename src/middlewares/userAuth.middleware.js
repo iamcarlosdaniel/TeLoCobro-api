@@ -10,6 +10,8 @@ export const userAuthMiddleware = async (req, res, next) => {
         ? req.headers["authorization"].split("Bearer ")[1].trim()
         : null);
 
+    console.log("authToken", authToken);
+
     if (!authToken) {
       console.log("No hay token de acceso en la cookie");
       return res.status(401).send({

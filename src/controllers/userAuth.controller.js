@@ -58,7 +58,7 @@ class UserAuthController {
       const { email, password } = req.body;
       const response = await UserAuthService.signIn(email, password);
 
-      res.cookie("auth_token", response.data, {
+      res.cookie("auth_token", response.auth_token, {
         httpOnly: true,
         secure: true,
         sameSite: "none",
