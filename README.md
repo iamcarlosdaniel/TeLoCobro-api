@@ -86,6 +86,9 @@ Puedes ver las dependencias del proyecto junto con sus versiones en el archivo [
 
 ---
 
+> [!IMPORTANT]
+> Este proyecto forma parte de la ruta de aprendizaje de la asignatura de Tecnologías Emergentes II en la Universidad Privada del Valle.
+
 Desarrollado por [Carlos Daniel Menchaca Arauz](https://www.github.com/iamcarlosdaniel)
 
 [GitHub](https://www.github.com/iamcarlosdaniel) - [Linkedin](https://www.linkedin.com/in/iamcarlosdaniel) - [iamcarlosdaniel.com](https://www.iamcarlosdaniel.com)
