@@ -1,8 +1,8 @@
 import bcrypt from "bcryptjs";
 
 import User from "../database/models/user.model.js";
+import City from "../database/models/city.model.js";
 
-import "../database/models/city.model.js";
 import "../database/models/state.model.js";
 import "../database/models/country.model.js";
 
@@ -81,7 +81,7 @@ class UserService {
       }
 
       const updatedUser = await User.findByIdAndUpdate(
-        userId,
+        { _id: userId },
         {
           first_name: userData.first_name,
           last_name: userData.last_name,
@@ -111,6 +111,7 @@ class UserService {
         message: "Informacion actualizada exitosamente.",
       };
     } catch (error) {
+      console.log(error);
       throw {
         status: error.status,
         message: error.userErrorMessage,

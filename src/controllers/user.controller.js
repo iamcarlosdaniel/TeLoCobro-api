@@ -27,7 +27,7 @@ class UserController {
 
   async updateProfile(req, res) {
     try {
-      const userId = req.authData.id;
+      const userId = req.authUserData.id;
       const userData = req.body;
       const response = await userService.updateProfile(userId, userData);
       res.status(200).send({
