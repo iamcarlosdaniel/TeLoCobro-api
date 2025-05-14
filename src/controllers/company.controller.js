@@ -3,7 +3,7 @@ import companyService from "../services/company.service.js";
 class CompanyController {
   async getMyCompany(req, res) {
     try {
-      const response = await companyService.getMyCompany(req.authUserData.id);
+      const response = await companyService.getMyCompany(req.authData.id);
 
       res.status(200).send({
         status: "OK",
@@ -29,7 +29,7 @@ class CompanyController {
   async createCompany(req, res) {
     try {
       const response = await companyService.createCompany(
-        req.authUserData.id,
+        req.authData.id,
         req.body
       );
 
@@ -57,7 +57,7 @@ class CompanyController {
   async updateCompany(req, res) {
     try {
       const response = await companyService.updateCompany(
-        req.authUserData.id,
+        req.authData.id,
         req.body
       );
 

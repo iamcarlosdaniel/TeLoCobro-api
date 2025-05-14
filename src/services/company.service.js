@@ -107,7 +107,13 @@ class CompanyService {
       }
       const companyFound = await Company.findOneAndUpdate(
         { user_id: userId },
-        { ...companyData },
+        {
+          name: companyData.name,
+          nit: companyData.nit,
+          legal_name: companyData.legal_name,
+          description: companyData.description,
+          city_id: companyData.city_id,
+        },
         { new: true }
       );
 

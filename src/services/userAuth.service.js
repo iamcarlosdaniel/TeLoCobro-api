@@ -155,6 +155,7 @@ class UserAuthService {
       const authToken = await createAccessToken(
         {
           id: userFound._id,
+          user_type: "user",
         },
         "7d"
       );

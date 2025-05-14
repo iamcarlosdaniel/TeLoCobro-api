@@ -131,6 +131,31 @@ class ClientService {
       };
     }
   }
+
+  async getProfile(clientId) {
+    try {
+      const clientFound = await Client.findById(clientId).select(
+        "-app_verify_otp -app_verify_otp_expired_at -app_access_enable"
+      );
+      if (!clientFound) {
+        throw {
+          status: 404,
+          userErrorMessage:
+            "No encontramos la informacion que estabas buscando.",
+        };
+      }
+      return {
+        message: "Información obtenida exitosamente.",
+        client: clientFound,
+      };
+    } catch (error) {
+      console.log(error);
+      throw {
+        status: error.status,
+        message: error.userErrorMessage,
+      };
+    }
+  }
 }
 
 export default new ClientService();

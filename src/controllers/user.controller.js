@@ -3,7 +3,7 @@ import userService from "../services/user.service.js";
 class UserController {
   async getProfile(req, res) {
     try {
-      const userId = req.authUserData.id;
+      const userId = req.authData.id;
       const response = await userService.getProfile(userId);
       res.status(200).send({
         status: "OK",
@@ -27,7 +27,7 @@ class UserController {
 
   async updateProfile(req, res) {
     try {
-      const userId = req.authUserData.id;
+      const userId = req.authData.id;
       const userData = req.body;
       const response = await userService.updateProfile(userId, userData);
       res.status(200).send({

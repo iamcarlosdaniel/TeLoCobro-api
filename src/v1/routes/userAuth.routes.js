@@ -2,7 +2,8 @@ import { Router } from "express";
 
 import UserAuthController from "../../controllers/userAuth.controller.js";
 
-import { userAuthMiddleware } from "../../middlewares/userAuth.middleware.js";
+import { authenticationMiddleware } from "../../middlewares/authentication.middleware.js";
+import { authorizationMiddleware } from "../../middlewares/authorization.middleware.js";
 import { inputValidation } from "../../middlewares/inputValidation.middleware.js";
 
 import {
@@ -45,8 +46,18 @@ router.post(
   UserAuthController.resetPassword
 );
 
-router.get("/status", userAuthMiddleware, UserAuthController.authStatus);
+router.get(
+  "/status",
+  authenticationMiddleware,
+  authorizationMiddleware("user"),
+  UserAuthController.authStatus
+);
 
-router.post("/sign-out", userAuthMiddleware, UserAuthController.signOut);
+router.post(
+  "/sign-out",
+  authenticationMiddleware,
+  authorizationMiddleware("user"),
+  UserAuthController.signOut
+);
 
 export default router;

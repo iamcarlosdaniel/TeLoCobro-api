@@ -1,12 +1,23 @@
 import { Router } from "express";
 
-import UserService from "../../controllers/user.controller.js";
-import { userAuthMiddleware } from "../../middlewares/userAuth.middleware.js";
+import userController from "../../controllers/user.controller.js";
+import { authenticationMiddleware } from "../../middlewares/authentication.middleware.js";
+import { authorizationMiddleware } from "../../middlewares/authorization.middleware.js";
 
 const router = Router();
 
-router.get("/me", userAuthMiddleware, UserService.getProfile);
+router.get(
+  "/me",
+  authenticationMiddleware,
+  authorizationMiddleware("user"),
+  userController.getProfile
+);
 
-router.put("/me", userAuthMiddleware, UserService.updateProfile);
+router.put(
+  "/me",
+  authenticationMiddleware,
+  authorizationMiddleware("user"),
+  userController.updateProfile
+);
 
 export default router;

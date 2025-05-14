@@ -2,18 +2,39 @@ import { Router } from "express";
 
 import clientController from "../../controllers/client.controller.js";
 
-import { userAuthMiddleware } from "../../middlewares/userAuth.middleware.js";
+import { authenticationMiddleware } from "../../middlewares/authentication.middleware.js";
+import { authorizationMiddleware } from "../../middlewares/authorization.middleware.js";
 import { upload } from "../../middlewares/fileUpload.middleware.js";
 
 const router = Router();
 
-router.get("/:id", userAuthMiddleware, clientController.getMyClientById);
+//Rutas de acceso solamente para clientes
+router.get(
+  "/me",
+  authenticationMiddleware,
+  authorizationMiddleware("client"),
+  clientController.getProfile
+);
 
-router.get("/", userAuthMiddleware, clientController.getAllMyClients);
+//Rutas de acceso solamente para usuarios
+router.get(
+  "/:id([0-9a-fA-F]{24})",
+  authenticationMiddleware,
+  authorizationMiddleware("user"),
+  clientController.getMyClientById
+);
+
+router.get(
+  "/",
+  authenticationMiddleware,
+  authorizationMiddleware("user"),
+  clientController.getAllMyClients
+);
 
 router.post(
   "/upload",
-  userAuthMiddleware,
+  authenticationMiddleware,
+  authorizationMiddleware("user"),
   upload.single("file"),
   clientController.uploadClients
 );
