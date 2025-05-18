@@ -6,9 +6,39 @@ import { createOTP } from "../libs/createOneTimePassword.js";
 import { sendEmail } from "../libs/sendEmail.js";
 
 class ClientAuthService {
-  async requestAccess(email) {
+  async getCompaniesWithMyEmail(email) {
     try {
-      const clientFound = await Client.findOne({ email: email });
+      const clientsFound = await Client.find({ email: email })
+        .select("_id")
+        .populate({
+          path: "company_id",
+          select: "-_id name legal_name",
+        });
+
+      if (!clientsFound) {
+        throw {
+          status: 404,
+          userErrorMessage:
+            "La dirección de correo electrónico no está afiliada a ninguna empresa.",
+        };
+      }
+
+      return {
+        message: "Clientes encontrados",
+        clients: clientsFound,
+      };
+    } catch (error) {
+      console.log(error);
+      throw {
+        status: error.status,
+        message: error.userErrorMessage,
+      };
+    }
+  }
+
+  async requestAccess(clientId) {
+    try {
+      const clientFound = await Client.findById(clientId);
       if (!clientFound) {
         throw {
           status: 404,
@@ -25,14 +55,21 @@ class ClientAuthService {
         },
         { new: true }
       );
+
       const context = {
         domain: process.env.CLIENT_URL,
         otp: otp,
       };
-      sendEmail(email, "Confirma tu cuenta", "confirmAccountTemplate", context);
+
+      sendEmail(
+        clientFound.email,
+        "Confirma tu cuenta",
+        "confirmAccountTemplate",
+        context
+      );
 
       return {
-        message: `Hemos enviado un correo a ${email} para vericar tu identidad.`,
+        message: `Hemos enviado un correo a ${clientFound.email} para vericar tu identidad.`,
       };
     } catch (error) {
       console.log(error);
@@ -43,9 +80,10 @@ class ClientAuthService {
     }
   }
 
-  async signIn(email, otp) {
+  async signIn(clientId, otp) {
     try {
-      const clientFound = await Client.findOne({ email });
+      const clientFound = await Client.findById(clientId);
+
       if (!clientFound) {
         throw {
           status: 404,
@@ -65,6 +103,7 @@ class ClientAuthService {
           userErrorMessage: "El OTP proporcionado ha expirado.",
         };
       }
+
       await Client.findByIdAndUpdate(
         clientFound._id,
         {
@@ -75,6 +114,7 @@ class ClientAuthService {
         { new: true }
       );
 
+      console.log("clientFound", clientFound);
       const authToken = await createAccessToken(
         {
           id: clientFound._id,
@@ -91,6 +131,15 @@ class ClientAuthService {
       });
 
       await newSession.save();
+
+      const context = {};
+
+      await sendEmail(
+        clientFound.email,
+        "Bienvenido a la app movil",
+        "welcomeAppTemplate",
+        context
+      );
 
       return {
         message: `Bienvenido ${clientFound.name}`,
@@ -143,7 +192,7 @@ class ClientAuthService {
       await Client.findByIdAndUpdate(
         clientFound._id,
         {
-          app_access_enable: false,
+          app_access: false,
         },
         { new: true }
       );

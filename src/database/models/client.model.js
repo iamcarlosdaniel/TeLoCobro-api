@@ -19,12 +19,10 @@ const clientSchema = new mongoose.Schema(
     nit: {
       type: String,
       required: true,
-      unique: true,
     },
     email: {
       type: String,
       required: true,
-      unique: true,
     },
     phone_number: {
       type: String,
@@ -37,7 +35,7 @@ const clientSchema = new mongoose.Schema(
     app_verify_otp_expired_at: {
       type: Date,
     },
-    app_access_enable: {
+    app_access: {
       type: Boolean,
       default: false,
     },
