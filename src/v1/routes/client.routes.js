@@ -32,7 +32,7 @@ router.get(
 );
 
 router.get(
-  "/me/debts/:id([0-9a-fA-F]{24})/search",
+  "/me/debts/search",
   authenticationMiddleware,
   authorizationMiddleware("client"),
   debtController.getMyDebtsByStatus
