@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import clientController from "../../controllers/client.controller.js";
+import debtController from "../../controllers/debt.controller.js";
 
 import { authenticationMiddleware } from "../../middlewares/authentication.middleware.js";
 import { authorizationMiddleware } from "../../middlewares/authorization.middleware.js";
@@ -14,6 +15,27 @@ router.get(
   authenticationMiddleware,
   authorizationMiddleware("client"),
   clientController.getProfile
+);
+
+router.get(
+  "/me/debts",
+  authenticationMiddleware,
+  authorizationMiddleware("client"),
+  clientController.getAllMyDebts
+);
+
+router.get(
+  "/me/debts/:id([0-9a-fA-F]{24})",
+  authenticationMiddleware,
+  authorizationMiddleware("client"),
+  clientController.getMyDebtById
+);
+
+router.get(
+  "/me/debts/:id([0-9a-fA-F]{24})/search",
+  authenticationMiddleware,
+  authorizationMiddleware("client"),
+  clientController.getMyDebtsByStatus
 );
 
 //Rutas de acceso solamente para usuarios
@@ -39,4 +61,18 @@ router.post(
   clientController.uploadClients
 );
 
+//Rutas de acceso para las deudas de los clientes
+router.get(
+  "/:id([0-9a-fA-F]{24})/debts",
+  authenticationMiddleware,
+  authorizationMiddleware("user"),
+  debtController.getClientDebtsById
+);
+
+router.get(
+  "/:id([0-9a-fA-F]{24})/debts/search",
+  authenticationMiddleware,
+  authorizationMiddleware("user"),
+  debtController.getClientDebtsByStatus
+);
 export default router;
