@@ -21,21 +21,21 @@ router.get(
   "/me/debts",
   authenticationMiddleware,
   authorizationMiddleware("client"),
-  clientController.getAllMyDebts
+  debtController.getAllMyDebts
 );
 
 router.get(
   "/me/debts/:id([0-9a-fA-F]{24})",
   authenticationMiddleware,
   authorizationMiddleware("client"),
-  clientController.getMyDebtById
+  debtController.getMyDebtById
 );
 
 router.get(
   "/me/debts/:id([0-9a-fA-F]{24})/search",
   authenticationMiddleware,
   authorizationMiddleware("client"),
-  clientController.getMyDebtsByStatus
+  debtController.getMyDebtsByStatus
 );
 
 //Rutas de acceso solamente para usuarios
