@@ -21,7 +21,10 @@ import OpenApiSpecification from "./openapi.json" with {type: "json"}
 const app = express();
 
 app.use(
-  cors()
+  cors({
+    origin: true,
+    credentials: true,
+  })
 );
 
 app.use(morgan("dev"));
