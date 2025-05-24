@@ -3,12 +3,10 @@ import hbs from "nodemailer-express-handlebars";
 import path from "path";
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.resend.com",
-  secure: true,
-  port: 465,
+  service: process.env.MAIL_SERVICE,
   auth: {
-    user: "resend",
-    pass: process.env.RESEND_API_KEY,
+    user: process.env.USER,
+    pass: process.env.PASS,
   },
 });
 
