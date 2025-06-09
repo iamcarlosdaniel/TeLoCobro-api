@@ -1,4 +1,5 @@
 import Company from "../database/models/company.model.js";
+import ReminderConfig from "../database/models/reminderConfig.model.js";
 import City from "../database/models/city.model.js";
 
 class CompanyService {
@@ -80,6 +81,12 @@ class CompanyService {
       await Company.create({
         ...companyData,
         user_id: userId,
+      });
+
+      await ReminderConfig.create({
+        company_id: userId,
+        days_before_due: 3,
+        status: "disabled",
       });
 
       return {

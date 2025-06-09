@@ -1,6 +1,7 @@
 import nodemailer from "nodemailer";
 import hbs from "nodemailer-express-handlebars";
 import path from "path";
+import { title } from "process";
 
 const transporter = nodemailer.createTransport({
   service: process.env.MAIL_SERVICE,
@@ -32,6 +33,10 @@ export async function sendEmail(to, subject, template, context) {
       domain: context.domain,
       otp: context.otp,
       token: context.token,
+      title: context.title || "Notification",
+      message:
+        context.message ||
+        "Por favor, pongase en contacto con nosotros urgentemente.",
     },
   };
 

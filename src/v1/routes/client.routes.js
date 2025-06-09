@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import clientController from "../../controllers/client.controller.js";
 import debtController from "../../controllers/debt.controller.js";
+import reminderController from "../../controllers/reminder.controller.js";
 
 import { authenticationMiddleware } from "../../middlewares/authentication.middleware.js";
 import { authorizationMiddleware } from "../../middlewares/authorization.middleware.js";
@@ -36,6 +37,21 @@ router.get(
   authenticationMiddleware,
   authorizationMiddleware("client"),
   debtController.getMyDebtsByStatus
+);
+
+//Rutas para los recordatorios de los clientes
+router.get(
+  "/me/reminders/company/:id([0-9a-fA-F]{24})",
+  authenticationMiddleware,
+  authorizationMiddleware("client"),
+  reminderController.getAllRemindersByCompanyId
+);
+
+router.get(
+  "/me/reminders/:id([0-9a-fA-F]{24})",
+  authenticationMiddleware,
+  authorizationMiddleware("client"),
+  reminderController.getClientReminderById
 );
 
 //Rutas de acceso solamente para usuarios
@@ -75,4 +91,5 @@ router.get(
   authorizationMiddleware("user"),
   debtController.getClientDebtsByStatus
 );
+
 export default router;

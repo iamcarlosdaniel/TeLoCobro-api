@@ -16,6 +16,8 @@ import companiesRoutes from "./v1/routes/company.routes.js";
 
 import debtsRoutes from "./v1/routes/debt.routes.js";
 
+import remindersRoutes from "./v1/routes/reminder.routes.js";
+
 import OpenApiSpecification from "./openapi.json" with {type: "json"}
 
 const app = express();
@@ -43,6 +45,7 @@ app.use("/api/v1/clients", clientsRoutes);
 app.use("/api/v1/location", locationsRoutes);
 app.use("/api/v1/companies", companiesRoutes);
 app.use("/api/v1/debts", debtsRoutes);
+app.use("/api/v1/reminders", remindersRoutes);
 
 app.use(
   "/api/v1/reference",
