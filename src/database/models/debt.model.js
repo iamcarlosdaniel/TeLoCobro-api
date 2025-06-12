@@ -43,6 +43,10 @@ const debtSchema = new mongoose.Schema({
     required: true,
     default: "pending",
   },
+  paid_at: {
+    type: Date,
+    trim: true,
+  },
 });
 
 export default mongoose.model("Debt", debtSchema);

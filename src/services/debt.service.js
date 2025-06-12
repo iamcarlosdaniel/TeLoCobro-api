@@ -1,7 +1,15 @@
 import Company from "../database/models/company.model.js";
 import Debt from "../database/models/debt.model.js";
 import Client from "../database/models/client.model.js";
+
 import { parseCSV } from "../libs/csvParser.js";
+import {
+  calculateTotalDebtBOB,
+  calculatePendingDebtBOB,
+  calculateAveragePaymentTime,
+  calculatePaymentDelayRate,
+  calculateTheRiskOfDefault,
+} from "../libs/debtCalculations.js";
 
 class DebtService {
   /*
@@ -232,7 +240,21 @@ class DebtService {
         };
       }
 
-      debt.status = status;
+      if (debt.status === "paid") {
+        throw {
+          status: 400,
+          userErrorMessage: "La deuda ya se encuentra pagada.",
+        };
+      } else {
+        debt.status = status;
+      }
+
+      if (status === "paid") {
+        debt.paid_at = new Date();
+      } else {
+        debt.paid_at = null;
+      }
+
       await debt.save();
       return {
         message: "Estado de la deuda actualizado correctamente",
@@ -350,6 +372,71 @@ class DebtService {
       return {
         message: "Deudas encontradas",
         debts: debts,
+      };
+    } catch (error) {
+      console.log(error);
+      throw {
+        status: error.status,
+        message: error.userErrorMessage,
+      };
+    }
+  }
+
+  //!SE RECOMIENDA SEPARAR DE ESTA FUNCION EN SERVICIOS INDEPENDIENTES Y ALGUNOS DE LOS CALCULOS AUTOMATIZARLOS
+  //!REFACTORIZAR SERVICIO
+  //atte: Daniel
+  async calculateMorosity(companyId, clientId) {
+    try {
+      const debtsFound = await Debt.find({
+        company_id: companyId,
+        client_id: clientId,
+      });
+
+      const totalDebtBOB = calculateTotalDebtBOB(debtsFound);
+      const totalPendingDebtBOB = calculatePendingDebtBOB(debtsFound);
+      const averagePaymentTime = calculateAveragePaymentTime(debtsFound);
+      const paymentDelayRate = calculatePaymentDelayRate(debtsFound);
+      const debtCount = debtsFound.length;
+
+      const dataToSendToTheApi = {
+        totalDebtBOB: totalDebtBOB,
+        totalPendingDebtBOB: totalPendingDebtBOB,
+        averagePaymentTime: averagePaymentTime,
+        paymentDelayRate: paymentDelayRate,
+        debtCount: debtCount,
+      };
+
+      const response = calculateTheRiskOfDefault(dataToSendToTheApi);
+
+      await Client.findOneAndUpdate(
+        { _id: clientId, company_id: companyId },
+        {
+          total_debt_bs: totalDebtBOB,
+          total_pending_debt_bs: totalPendingDebtBOB,
+          average_payment_time: averagePaymentTime,
+          payment_delay_rate: paymentDelayRate,
+          debt_count: debtCount,
+          morosity: {
+            prediction: response.prediction,
+            probability: response.probability,
+            threshold: response.threshold,
+          },
+        },
+        { new: true }
+      );
+
+      return {
+        message: "Morosidad calculada exitosamente",
+        morosity: {
+          total_debt_bs: totalDebtBOB,
+          total_pending_debt_bs: totalPendingDebtBOB,
+          average_payment_time: averagePaymentTime,
+          payment_delay_rate: paymentDelayRate,
+          debt_count: debtCount,
+          prediction: response.prediction,
+          probability: response.probability,
+          threshold: response.threshold,
+        },
       };
     } catch (error) {
       console.log(error);

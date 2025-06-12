@@ -55,6 +55,13 @@ router.get(
 );
 
 //Rutas de acceso solamente para usuarios
+router.post(
+  "/:id([0-9a-fA-F]{24})/calc/morosity",
+  authenticationMiddleware,
+  authorizationMiddleware("user"),
+  debtController.calculateMorosity
+);
+
 router.get(
   "/:id([0-9a-fA-F]{24})",
   authenticationMiddleware,

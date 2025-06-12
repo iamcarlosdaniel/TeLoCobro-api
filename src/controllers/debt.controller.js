@@ -251,6 +251,32 @@ class DebtController {
       });
     }
   }
+
+  async calculateMorosity(req, res) {
+    try {
+      const clientId = req.params.id;
+      const companyId = req.authData.id;
+      const response = await debtService.calculateMorosity(clientId, companyId);
+
+      res.status(200).send({
+        status: "OK",
+        data: response,
+      });
+    } catch (error) {
+      res.status(error?.status || 500).send({
+        status: "FAILED",
+        data: {
+          error: [
+            {
+              message:
+                error?.message ||
+                "Ocurrio un error al procesar su solicitud. Por favor intente de nuevo mas tarde.",
+            },
+          ],
+        },
+      });
+    }
+  }
 }
 
 export default new DebtController();

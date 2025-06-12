@@ -1,7 +1,6 @@
 import nodemailer from "nodemailer";
 import hbs from "nodemailer-express-handlebars";
 import path from "path";
-import { title } from "process";
 
 const transporter = nodemailer.createTransport({
   service: process.env.MAIL_SERVICE,
