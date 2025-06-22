@@ -14,7 +14,7 @@ const handlebarOptions = {
 };
 
 export async function sendEmail(to, subject, template, context) {
-  const devConfig = await Dev.findOne({ _id: "685748bcbcfd98285bd02285" });
+  const devConfig = await Dev.findOne({ _id: "68576dd39003f0d5bb074620" });
   if (!devConfig) {
     throw {
       status: 500,
