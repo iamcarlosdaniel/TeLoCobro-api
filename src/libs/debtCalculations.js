@@ -53,12 +53,11 @@ export async function calculatePaymentDelayRate(debts) {
 
 export async function calculateTheRiskOfDefault(data) {
   const apiUrl = process.env.RISK_API_URL;
-  const apiKey = process.env.RISK_API_KEY;
 
   try {
+    console.log("Datos que se van a enviar:", data);
     const response = await axios.post(apiUrl, data, {
       headers: {
-        "x-api-key": apiKey,
         "Content-Type": "application/json",
       },
     });
