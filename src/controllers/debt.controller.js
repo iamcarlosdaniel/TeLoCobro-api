@@ -255,8 +255,8 @@ class DebtController {
   async calculateMorosity(req, res) {
     try {
       const clientId = req.params.id;
-      const companyId = req.authData.id;
-      const response = await debtService.calculateMorosity(clientId, companyId);
+      const userId = req.authData.id;
+      const response = await debtService.calculateMorosity(userId, clientId);
 
       res.status(200).send({
         status: "OK",
