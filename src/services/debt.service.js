@@ -385,17 +385,40 @@ class DebtService {
   //!SE RECOMIENDA SEPARAR DE ESTA FUNCION EN SERVICIOS INDEPENDIENTES Y ALGUNOS DE LOS CALCULOS AUTOMATIZARLOS
   //!REFACTORIZAR SERVICIO
   //atte: Daniel
-  async calculateMorosity(companyId, clientId) {
+  async calculateMorosity(userId, clientId) {
     try {
+      const companyFound = await Company.findOne({ user_id: userId });
+
+      if (!companyFound) {
+        throw {
+          status: 404,
+          userErrorMessage: "No tienes una empresa registrada.",
+        };
+      }
+
       const debtsFound = await Debt.find({
-        company_id: companyId,
+        company_id: companyFound._id,
         client_id: clientId,
       });
 
-      const totalDebtBOB = calculateTotalDebtBOB(debtsFound);
-      const totalPendingDebtBOB = calculatePendingDebtBOB(debtsFound);
-      const averagePaymentTime = calculateAveragePaymentTime(debtsFound);
-      const paymentDelayRate = calculatePaymentDelayRate(debtsFound);
+      if (!debtsFound) {
+        throw {
+          status: 404,
+          userErrorMessage: "No tienes deudas registradas.",
+        };
+      }
+
+      if (debtsFound.length === 0) {
+        throw {
+          status: 404,
+          userErrorMessage: "No se encontraron deudas para el cliente.",
+        };
+      }
+
+      const totalDebtBOB = await calculateTotalDebtBOB(debtsFound);
+      const totalPendingDebtBOB = await calculatePendingDebtBOB(debtsFound);
+      const averagePaymentTime = await calculateAveragePaymentTime(debtsFound);
+      const paymentDelayRate = await calculatePaymentDelayRate(debtsFound);
       const debtCount = debtsFound.length;
 
       const dataToSendToTheApi = {
@@ -406,10 +429,12 @@ class DebtService {
         debtCount: debtCount,
       };
 
-      const response = calculateTheRiskOfDefault(dataToSendToTheApi);
+      console.log("Datos que se enviarán a la API:", dataToSendToTheApi);
+
+      const response = await calculateTheRiskOfDefault(dataToSendToTheApi);
 
       await Client.findOneAndUpdate(
-        { _id: clientId, company_id: companyId },
+        { _id: clientId, company_id: companyFound._id },
         {
           total_debt_bs: totalDebtBOB,
           total_pending_debt_bs: totalPendingDebtBOB,
