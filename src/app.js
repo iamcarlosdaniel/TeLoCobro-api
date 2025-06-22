@@ -18,6 +18,8 @@ import debtsRoutes from "./v1/routes/debt.routes.js";
 
 import remindersRoutes from "./v1/routes/reminder.routes.js";
 
+import devRoutes from "./v1/routes/dev.routes.js";
+
 import OpenApiSpecification from "./openapi.json" with {type: "json"}
 
 const app = express();
@@ -33,6 +35,9 @@ app.use(morgan("dev"));
 app.use(express.json());
 app.use(cookieParser());
 app.set('trust proxy', true);
+
+//Rutas para manejar la configuracion de desarrollo
+app.use("/api/v1/dev", devRoutes);
 
 //Rutas para manejar la atenticacion y manejo de los usuarios
 app.use("/api/v1/auth/users", userAuthRoutes);

@@ -57,7 +57,12 @@ class UserAuthService {
         otp: otp,
       };
 
-      sendEmail(email, "Confirma tu cuenta", "confirmAccountTemplate", context);
+      await sendEmail(
+        email,
+        "Confirma tu cuenta",
+        "confirmAccountTemplate",
+        context
+      );
 
       await newUser.save();
 
@@ -117,7 +122,12 @@ class UserAuthService {
         domain: process.env.CLIENT_URL,
       };
 
-      sendEmail(email, "Bienvenido a TeLoCobro", "welcomeTemplate", context);
+      await sendEmail(
+        email,
+        "Bienvenido a TeLoCobro",
+        "welcomeTemplate",
+        context
+      );
 
       return { message: "Cuenta verificada exitosamente." };
     } catch (error) {
@@ -209,7 +219,7 @@ class UserAuthService {
         domain: process.env.CLIENT_URL,
         otp: otp,
       };
-      sendEmail(
+      await sendEmail(
         email,
         "Recupera tu contraseña",
         "forgotPasswordTemplate",

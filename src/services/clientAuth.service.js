@@ -61,7 +61,7 @@ class ClientAuthService {
         otp: otp,
       };
 
-      sendEmail(
+      await sendEmail(
         clientFound.email,
         "Confirma tu cuenta",
         "confirmAccountTemplate",
